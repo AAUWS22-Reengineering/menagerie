@@ -11,7 +11,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class StartupTest extends UITest {
+public class StartupIT extends UITest {
 
     @BeforeAll
     static void setup() throws Exception {
