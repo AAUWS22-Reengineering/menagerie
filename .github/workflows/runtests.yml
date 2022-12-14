@@ -18,7 +18,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Run tests with Maven
-        run: mvn -B verify --file pom.xml -DskipITs -Dheadless=true
+        run: mvn -B verify --file pom.xml -Dtest=!menagerie.gui.**
       - name: Analyze with SonarCloud
         run: mvn sonar:sonar 
               -Dsonar.projectKey=AAUWS22-Reengineering_menagerie 
