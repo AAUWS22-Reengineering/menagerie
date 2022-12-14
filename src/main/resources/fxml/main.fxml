@@ -132,8 +132,8 @@
         </left>
         <top>
             <MenuBar fx:id="menuBar" BorderPane.alignment="CENTER">
-                <Menu mnemonicParsing="false" text="File">
-                    <MenuItem mnemonicParsing="false" onAction="#importFilesMenuButtonOnAction" text="Import files"/>
+                <Menu fx:id="menuFile" mnemonicParsing="false" text="File">
+                    <MenuItem fx:id="menuItemImportFile" mnemonicParsing="false" onAction="#importFilesMenuButtonOnAction" text="Import files"/>
                     <SeparatorMenuItem/>
                     <MenuItem mnemonicParsing="false" onAction="#revertDatabaseMenuButtonOnAction"
                               text="Revert to backup"/>
