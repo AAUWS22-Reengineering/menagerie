@@ -36,6 +36,8 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import menagerie.gui.itemhandler.ItemInfoBoxRenderer;
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.util.Util;
@@ -125,25 +127,9 @@ public class ItemInfoBox extends VBox {
               .withZone(ZoneId.systemDefault()).format(new Date(item.getDateAdded()).toInstant()));
     }
 
-    if (item instanceof MediaItem) {
-      fileSizeLabel.setText(Util.bytesToPrettyString(((MediaItem) item).getFile().length()));
-      filePathLabel.setText(((MediaItem) item).getFile().toString());
-      if (((MediaItem) item).isImage()) { //TODO: Support for video resolution (May be possible in latest VLCJ api)
-        if (((MediaItem) item).getImage().isBackgroundLoading() &&
-            ((MediaItem) item).getImage().getProgress() != 1) {
-          resolutionLabel.setText("Loading...");
-          ((MediaItem) item).getImage().progressProperty()
-              .addListener((observable, oldValue, newValue) -> {
-                if (newValue.doubleValue() == 1 && !((MediaItem) item).getImage().isError()) {
-                  resolutionLabel.setText((int) ((MediaItem) item).getImage().getWidth() + "x" +
-                                          (int) ((MediaItem) item).getImage().getHeight());
-                }
-              });
-        } else {
-          resolutionLabel.setText((int) ((MediaItem) item).getImage().getWidth() + "x" +
-                                  (int) ((MediaItem) item).getImage().getHeight());
-        }
-      }
+    ItemInfoBoxRenderer itemInfoBoxRenderer = Items.getItemInfoBoxRenderer(item);
+    if (itemInfoBoxRenderer != null) {
+      itemInfoBoxRenderer.setItemInfoBoxLabels(item, fileSizeLabel, filePathLabel, resolutionLabel);
     }
   }
 
