@@ -1,4 +1,4 @@
-package menagerie.gui.itemhandler;
+package menagerie.gui.itemhandler.infoboxrenderer;
 
 import javafx.scene.control.Label;
 import menagerie.model.menagerie.Item;

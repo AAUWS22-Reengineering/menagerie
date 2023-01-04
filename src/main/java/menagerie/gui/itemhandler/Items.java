@@ -1,5 +1,11 @@
 package menagerie.gui.itemhandler;
 
+import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
+import menagerie.gui.itemhandler.infoboxrenderer.MediaItemInfoBoxRenderer;
+import menagerie.gui.itemhandler.opener.GroupItemOpener;
+import menagerie.gui.itemhandler.opener.ItemOpener;
+import menagerie.gui.itemhandler.opener.MediaItemOpener;
+import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 
@@ -21,6 +27,8 @@ public class Items {
     register = new HashMap<>();
 
     register(ItemInfoBoxRenderer.class, MediaItem.class, new MediaItemInfoBoxRenderer());
+    register(ItemOpener.class, GroupItem.class, new GroupItemOpener());
+    register(ItemOpener.class, MediaItem.class, new MediaItemOpener());
   }
 
   private Items() {
@@ -33,7 +41,7 @@ public class Items {
    * @param interfaceImpl Class of interface implementation.
    * @param <T> Class of the interface.
    */
-  private static <T> void register(Class<T> interfaceClass, Class<? extends Item> itemType, T interfaceImpl) {
+  public static <T> void register(Class<T> interfaceClass, Class<? extends Item> itemType, T interfaceImpl) {
     HashMap<Class<? extends Item>, Object> registeredImpls = register.computeIfAbsent(interfaceClass, k -> new HashMap<>());
 
     if (registeredImpls.get(itemType) != null) {
@@ -51,7 +59,7 @@ public class Items {
    * @param <T> Class of interface.
    * @return Interface implementation, or null if none was registered.
    */
-  private static <T> T get(Class<T> interfaceClass, Item item) {
+  public static <T> T get(Class<T> interfaceClass, Item item) {
     HashMap<Class<? extends Item>, Object> registeredImpls = register.get(interfaceClass);
     if (registeredImpls != null) {
       return getRecursive(registeredImpls, item != null ? item.getClass() : Item.class);
@@ -73,9 +81,5 @@ public class Items {
       return impl;
     }
     return null;
-  }
-
-  public static ItemInfoBoxRenderer getItemInfoBoxRenderer(Item item) {
-    return get(ItemInfoBoxRenderer.class, item);
   }
 }

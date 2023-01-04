@@ -52,6 +52,8 @@ import menagerie.duplicates.DuplicateFinder;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.handler.*;
+import menagerie.gui.itemhandler.opener.ItemOpener;
+import menagerie.gui.itemhandler.Items;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.media.DynamicVideoView;
 import menagerie.gui.predictive.PredictiveTextField;
@@ -742,16 +744,9 @@ public class MainController {
   private void registerCellMouseClickEvent(ItemGridCell c) {
     c.setOnMouseClicked(event -> {
       if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() > 1) {
-        if (c.getItem() instanceof GroupItem) {
-          explorerOpenGroup((GroupItem) c.getItem());
-        } else if (c.getItem() instanceof MediaItem) {
-          try {
-            Desktop.getDesktop().open(((MediaItem) c.getItem()).getFile());
-          } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, e,
-                () -> "Failed to open file with system default: " +
-                    ((MediaItem) c.getItem()).getFile());
-          }
+        ItemOpener itemOpener = Items.get(ItemOpener.class, c.getItem());
+        if (itemOpener != null) {
+          itemOpener.open(c.getItem(), this);
         }
       }
     });
@@ -1152,7 +1147,7 @@ public class MainController {
    *
    * @param group Group scope.
    */
-  private void explorerOpenGroup(GroupItem group) {
+  public void explorerOpenGroup(GroupItem group) {
     searchTextField.setText(null);
     if (settings.explorerGroupAscending.getValue()) {
       listDescendingToggleButton.setSelected(false);

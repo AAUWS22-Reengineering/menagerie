@@ -36,11 +36,9 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import menagerie.gui.itemhandler.ItemInfoBoxRenderer;
+import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.util.Util;
 
 public class ItemInfoBox extends VBox {
 
@@ -127,7 +125,7 @@ public class ItemInfoBox extends VBox {
               .withZone(ZoneId.systemDefault()).format(new Date(item.getDateAdded()).toInstant()));
     }
 
-    ItemInfoBoxRenderer itemInfoBoxRenderer = Items.getItemInfoBoxRenderer(item);
+    ItemInfoBoxRenderer itemInfoBoxRenderer = Items.get(ItemInfoBoxRenderer.class, item);
     if (itemInfoBoxRenderer != null) {
       itemInfoBoxRenderer.setItemInfoBoxLabels(item, fileSizeLabel, filePathLabel, resolutionLabel);
     }
