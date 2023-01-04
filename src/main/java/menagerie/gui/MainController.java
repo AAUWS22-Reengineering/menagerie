@@ -27,26 +27,6 @@ package menagerie.gui;
 import com.mortennobel.imagescaling.AdvancedResizeOp;
 import com.mortennobel.imagescaling.ResampleFilters;
 import com.mortennobel.imagescaling.ResampleOp;
-import java.awt.Desktop;
-import java.awt.Toolkit;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -56,23 +36,13 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -81,12 +51,7 @@ import javafx.stage.Stage;
 import menagerie.duplicates.DuplicateFinder;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.grid.ItemGridView;
-import menagerie.gui.handler.CurrentSearchChangeListener;
-import menagerie.gui.handler.EditTagsTextFieldOptionsListener;
-import menagerie.gui.handler.LoggerHandler;
-import menagerie.gui.handler.PruneFileLessMenuButtonAction;
-import menagerie.gui.handler.RebuildSimilarityCacheMenuButtonAction;
-import menagerie.gui.handler.SearchTextFieldOptionsListener;
+import menagerie.gui.handler.*;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.media.DynamicVideoView;
 import menagerie.gui.predictive.PredictiveTextField;
@@ -94,11 +59,7 @@ import menagerie.gui.screens.HelpScreen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.gui.screens.SlideshowScreen;
 import menagerie.gui.screens.TagListScreen;
-import menagerie.gui.screens.dialogs.ConfirmationScreen;
-import menagerie.gui.screens.dialogs.GroupDialogScreen;
-import menagerie.gui.screens.dialogs.ImportDialogScreen;
-import menagerie.gui.screens.dialogs.ProgressScreen;
-import menagerie.gui.screens.dialogs.TextDialogScreen;
+import menagerie.gui.screens.dialogs.*;
 import menagerie.gui.screens.duplicates.DuplicateOptionsScreen;
 import menagerie.gui.screens.findonline.FindOnlineScreen;
 import menagerie.gui.screens.importer.ImporterScreen;
@@ -106,28 +67,11 @@ import menagerie.gui.screens.log.LogListCell;
 import menagerie.gui.screens.log.LogScreen;
 import menagerie.gui.screens.move.MoveFilesScreen;
 import menagerie.gui.screens.settings.SettingsScreen;
-import menagerie.gui.taglist.TagListCell;
-import menagerie.gui.taglist.TagListCellAddListener;
-import menagerie.gui.taglist.TagListCellContextMenuEventListener;
-import menagerie.gui.taglist.TagListCellContextMenuListener;
-import menagerie.gui.taglist.TagListCellMouseClickListener;
-import menagerie.gui.taglist.TagListCellRemoveListener;
-import menagerie.gui.util.FileExplorer;
-import menagerie.gui.util.GridPaneUtil;
-import menagerie.gui.util.GridViewUtil;
-import menagerie.gui.util.Icons;
-import menagerie.gui.util.ItemUtil;
-import menagerie.gui.util.RootPaneSettings;
-import menagerie.gui.util.TagUtil;
-import menagerie.gui.util.UnreadLogFlag;
+import menagerie.gui.taglist.*;
+import menagerie.gui.util.*;
 import menagerie.model.Plugins;
 import menagerie.model.SimilarPair;
-import menagerie.model.menagerie.GroupItem;
-import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.model.menagerie.Menagerie;
-import menagerie.model.menagerie.Tag;
-import menagerie.model.menagerie.TagEditEvent;
+import menagerie.model.menagerie.*;
 import menagerie.model.menagerie.db.DatabaseUtil;
 import menagerie.model.menagerie.importer.ImportJob;
 import menagerie.model.menagerie.importer.ImporterThread;
@@ -141,6 +85,19 @@ import menagerie.util.Filters;
 import menagerie.util.folderwatcher.FolderWatcherThread;
 import menagerie.util.folderwatcher.FolderWatcherUtil;
 import menagerie.util.listeners.ObjectListener;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainController {
 
@@ -270,9 +227,7 @@ public class MainController {
   /**
    * Search listener listening for items being added or removed from the current search
    */
-  private final ListChangeListener<Item> searchChangeListener =
-      new CurrentSearchChangeListener(itemGridView,
-          this::getCurrentlyPreviewing, () -> previewItem(null));
+  private ListChangeListener<Item> searchChangeListener;
 
   private Item getCurrentlyPreviewing() {
     return currentlyPreviewing;
@@ -291,14 +246,11 @@ public class MainController {
   /**
    * Flag set when an unread error log is present
    */
-  private final BooleanProperty logError =
-      new UnreadLogFlag(logButton, logErrorPseudoClass, "error");
-
+  private BooleanProperty logError;
   /**
    * Flag set when an unread warning log is present
    */
-  private final BooleanProperty logWarning =
-      new UnreadLogFlag(logButton, logWarningPseudoClass, "warning");
+  private BooleanProperty logWarning;
 
   // --------------------------------- Threads -------------------------------------
   /**
@@ -455,6 +407,12 @@ public class MainController {
    */
   private void initScreens() {
     LOGGER.info("Initializing screens");
+
+    // Main Screen
+    logError = new UnreadLogFlag(logButton, logErrorPseudoClass, "error");
+    logWarning = new UnreadLogFlag(logButton, logWarningPseudoClass, "warning");
+    searchChangeListener = new CurrentSearchChangeListener(itemGridView,
+        this::getCurrentlyPreviewing, () -> previewItem(null));
 
     // Explorer. Base screen.
     initExplorer();
@@ -792,7 +750,7 @@ public class MainController {
           } catch (IOException e) {
             LOGGER.log(Level.SEVERE, e,
                 () -> "Failed to open file with system default: " +
-                      ((MediaItem) c.getItem()).getFile());
+                    ((MediaItem) c.getItem()).getFile());
           }
         }
       }
@@ -1214,7 +1172,7 @@ public class MainController {
                            boolean showGrouped, boolean shuffled) {
     LOGGER.info(() ->
         "Searching: \"" + search + "\", group:" + groupScope + ", descending:" + descending +
-        ", showGrouped:" + showGrouped + ", shuffled:" + shuffled);
+            ", showGrouped:" + showGrouped + ", shuffled:" + shuffled);
 
     cleanupPreviousSearch();
 
@@ -1491,7 +1449,7 @@ public class MainController {
     if (backup.exists()) {
       new ConfirmationScreen().open(screenPane, "Revert database",
           "Revert to latest backup? (" + new Date(backup.lastModified()) +
-          ")\n\nLatest backup: \"" + backup + "\"\n\nNote: Files will not be deleted!",
+              ")\n\nLatest backup: \"" + backup + "\"\n\nNote: Files will not be deleted!",
           () -> cleanExit(true), null);
     }
     event.consume();
@@ -1724,7 +1682,7 @@ public class MainController {
       TagEditEvent peek = tagEditHistory.peek();
       new ConfirmationScreen().open(screenPane, "Undo last tag edit?",
           "Tags were added to " + peek.getAdded().keySet().size() +
-          " items.\nTags were removed from " + peek.getRemoved().keySet().size() + " others.",
+              " items.\nTags were removed from " + peek.getRemoved().keySet().size() + " others.",
           () -> {
             TagEditEvent pop = tagEditHistory.pop();
             pop.revertAction();
