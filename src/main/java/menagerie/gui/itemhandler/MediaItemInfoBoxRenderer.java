@@ -8,22 +8,23 @@ import menagerie.util.Util;
 public class MediaItemInfoBoxRenderer implements ItemInfoBoxRenderer {
   @Override
   public void setItemInfoBoxLabels(Item item, Label fileSizeLabel, Label filePathLabel, Label resolutionLabel) {
-    fileSizeLabel.setText(Util.bytesToPrettyString(((MediaItem) item).getFile().length()));
-    filePathLabel.setText(((MediaItem) item).getFile().toString());
-    if (((MediaItem) item).isImage()) { //TODO: Support for video resolution (May be possible in latest VLCJ api)
-      if (((MediaItem) item).getImage().isBackgroundLoading() &&
-          ((MediaItem) item).getImage().getProgress() != 1) {
+    MediaItem mediaItem = (MediaItem) item;
+    fileSizeLabel.setText(Util.bytesToPrettyString(mediaItem.getFile().length()));
+    filePathLabel.setText(mediaItem.getFile().toString());
+    if (mediaItem.isImage()) { //TODO: Support for video resolution (May be possible in latest VLCJ api)
+      if (mediaItem.getImage().isBackgroundLoading() &&
+          mediaItem.getImage().getProgress() != 1) {
         resolutionLabel.setText("Loading...");
-        ((MediaItem) item).getImage().progressProperty()
+        mediaItem.getImage().progressProperty()
             .addListener((observable, oldValue, newValue) -> {
-              if (newValue.doubleValue() == 1 && !((MediaItem) item).getImage().isError()) {
-                resolutionLabel.setText((int) ((MediaItem) item).getImage().getWidth() + "x" +
-                    (int) ((MediaItem) item).getImage().getHeight());
+              if (newValue.doubleValue() == 1 && !mediaItem.getImage().isError()) {
+                resolutionLabel.setText((int) mediaItem.getImage().getWidth() + "x" +
+                    (int) mediaItem.getImage().getHeight());
               }
             });
       } else {
-        resolutionLabel.setText((int) ((MediaItem) item).getImage().getWidth() + "x" +
-            (int) ((MediaItem) item).getImage().getHeight());
+        resolutionLabel.setText((int) mediaItem.getImage().getWidth() + "x" +
+            (int) mediaItem.getImage().getHeight());
       }
     }
   }
