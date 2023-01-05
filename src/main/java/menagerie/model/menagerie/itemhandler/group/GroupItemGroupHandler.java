@@ -5,6 +5,7 @@ import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class GroupItemGroupHandler implements ItemGroupHandler {
@@ -24,5 +25,11 @@ public class GroupItemGroupHandler implements ItemGroupHandler {
     item.getTags().forEach(group::addTag);
     item.getMenagerie().forgetItem(item);
     e.forEach(group::addItem);
+  }
+
+  @Override
+  public void sortItems(Item item) {
+    GroupItem groupItem = (GroupItem) item;
+    groupItem.getElements().sort(Comparator.comparingInt(MediaItem::getPageIndex));
   }
 }

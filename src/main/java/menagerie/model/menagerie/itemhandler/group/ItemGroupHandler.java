@@ -7,4 +7,5 @@ public interface ItemGroupHandler {
   void removeFromGroup(Item item);
   String getGroupTitle(Item item);
   void addToGroup(Item item, GroupItem group);
+  void sortItems(Item item);
 }

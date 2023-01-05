@@ -36,4 +36,14 @@ public class MediaItemSimilarity implements ItemSimilarity {
     }
     return false;
   }
+
+  @Override
+  public boolean isExactDuplicate(Item base, Item target) {
+    MediaItem mediaBase = (MediaItem) base;
+    if (target instanceof MediaItem mediaTarget) {
+      return !mediaBase.equals(mediaTarget) && mediaBase.getMD5() != null &&
+          mediaBase.getMD5().equalsIgnoreCase(mediaTarget.getMD5());
+    }
+    return false;
+  }
 }

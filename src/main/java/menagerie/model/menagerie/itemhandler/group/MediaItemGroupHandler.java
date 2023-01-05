@@ -22,4 +22,9 @@ public class MediaItemGroupHandler implements ItemGroupHandler {
   public void addToGroup(Item item, GroupItem group) {
     group.addItem((MediaItem) item);
   }
+
+  @Override
+  public void sortItems(Item item) {
+    // not supported
+  }
 }
