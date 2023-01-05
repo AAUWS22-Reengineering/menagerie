@@ -3,13 +3,18 @@ package menagerie.gui.util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
+import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 public class ItemUtil {
 
@@ -19,35 +24,34 @@ public class ItemUtil {
   public static void removeFromGroup(List<Item> selected, ContextMenu cm) {
     MenuItem removeFromGroup = new MenuItem("Remove from group");
     removeFromGroup.setOnAction(event -> selected.forEach(item -> {
-      if (item instanceof MediaItem && ((MediaItem) item).isInGroup()) {
-        ((MediaItem) item).getGroup().removeItem((MediaItem) item);
-      }
+      Items.get(ItemGroupHandler.class, item).ifPresent(itemGroupHandler -> itemGroupHandler.removeFromGroup(item));
     }));
     cm.getItems().add(removeFromGroup);
   }
 
   public static void addGroupElements(List<Item> items) {
     for (int i = 0; i < items.size(); i++) {
-      if (items.get(i) instanceof GroupItem) {
-        items.addAll(((GroupItem) items.get(i)).getElements());
-      }
+      Item item = items.get(i);
+      Items.get(ItemProperties.class, item).ifPresent(itemProps -> {
+        if (itemProps.isGroup(item)) {
+          items.addAll(itemProps.getItems(item));
+        }
+      });
     }
   }
 
   public static List<Item> flattenGroups(List<Item> items, boolean reversed) {
-    items = new ArrayList<>(items);
-    for (int i = 0; i < items.size(); i++) {
-      if (items.get(i) instanceof GroupItem) {
-        GroupItem group = (GroupItem) items.remove(i);
-        items.addAll(i, group.getElements());
-      }
+    ArrayList<Item> itemsFlat = new ArrayList<>();
+    for (Item item : items) {
+      Items.get(ItemProperties.class, item).ifPresent(itemProps -> itemsFlat.addAll(itemProps.getItems(item)));
     }
     if (reversed) {
-      Collections.reverse(items);
+      Collections.reverse(itemsFlat);
     }
-    return items;
+    return itemsFlat;
   }
 
+  // REENG: Probably unused - not worth the refactoring effort right now
   public static List<MediaItem> flattenGroups(List<Item> selected) {
     List<MediaItem> items = new ArrayList<>();
     for (Item item : selected) {
@@ -78,9 +82,13 @@ public class ItemUtil {
   public static String getFirstGroupTitle(List<Item> toGroup) {
     String title = null;
     for (Item item : toGroup) {
-      if (item instanceof GroupItem) {
-        title = ((GroupItem) item).getTitle();
-        break;
+      Optional<ItemGroupHandler> itemGroupHandler = Items.get(ItemGroupHandler.class, item);
+      if (itemGroupHandler.isPresent()) {
+        String t = itemGroupHandler.get().getGroupTitle(item);
+        if (t != null) {
+          title = t;
+          break;
+        }
       }
     }
     return title;
