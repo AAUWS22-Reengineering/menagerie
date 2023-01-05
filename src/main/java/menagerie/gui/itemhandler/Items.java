@@ -89,6 +89,11 @@ public class Items {
     registeredImpls.put(itemType, interfaceImpl);
   }
 
+  public static <T> T unregister(Class<T> interfaceClass, Class<? extends Item> itemType) {
+    HashMap<Class<? extends Item>, Object> registeredImpls = register.computeIfAbsent(interfaceClass, k -> new HashMap<>());
+    return (T) registeredImpls.remove(itemType);
+  }
+
   /**
    * Get an instance of the implementation registered for the provided interface and item type.
    * If no implementation is found for an item class, the superclass' will be returned (up until Item).
