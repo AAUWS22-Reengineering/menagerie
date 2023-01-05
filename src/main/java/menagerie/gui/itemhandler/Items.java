@@ -3,6 +3,7 @@ package menagerie.gui.itemhandler;
 import menagerie.gui.itemhandler.gridcell.GroupItemCellHandler;
 import menagerie.gui.itemhandler.gridcell.ItemCellHandler;
 import menagerie.gui.itemhandler.gridcell.MediaItemCellHandler;
+import menagerie.gui.itemhandler.preview.GroupItemPreview;
 import menagerie.model.menagerie.itemhandler.properties.GroupItemProperties;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.menagerie.itemhandler.properties.MediaItemProperties;
@@ -47,6 +48,7 @@ public class Items {
     register(ItemGridViewSelector.class, MediaItem.class, new MediaItemGridViewSelector());
     register(ItemProperties.class, GroupItem.class, new GroupItemProperties());
     register(ItemProperties.class, MediaItem.class, new MediaItemProperties());
+    register(ItemPreview.class, GroupItem.class, new GroupItemPreview());
     register(ItemPreview.class, MediaItem.class, new MediaItemPreview());
     register(ItemRenamer.class, GroupItem.class, new GroupItemRenamer());
     register(ItemCellHandler.class, GroupItem.class, new GroupItemCellHandler());
