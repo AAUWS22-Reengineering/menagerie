@@ -24,6 +24,11 @@ public class MediaItemProperties implements ItemProperties {
   }
 
   @Override
+  public int getItemCount(Item item) {
+    return 1;
+  }
+
+  @Override
   public GroupItem getParentGroup(Item item) {
     return ((MediaItem) item).getGroup();
   }

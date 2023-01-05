@@ -1,5 +1,6 @@
 package menagerie.gui.itemhandler.preview;
 
+import menagerie.gui.ItemInfoBox;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
@@ -22,5 +23,11 @@ public class GroupItemPreview implements ItemPreview {
     if (((MediaItem) currentlyPreviewing).isVideo()) {
       previewMediaView.stop();
     }
+  }
+
+  @Override
+  public boolean previewInSlideshow(DynamicMediaView mediaView, ItemInfoBox infoBox, Item item) {
+    // No preview supported
+    return false;
   }
 }

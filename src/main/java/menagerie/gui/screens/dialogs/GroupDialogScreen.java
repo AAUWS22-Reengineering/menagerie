@@ -41,12 +41,14 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import menagerie.gui.itemhandler.Items;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.util.listeners.ObjectListener;
 
 public class GroupDialogScreen extends Screen {
@@ -117,11 +119,9 @@ public class GroupDialogScreen extends Screen {
     if (toGroup != null) {
       this.toGroup = new ArrayList<>(toGroup);
       for (Item item : toGroup) {
-        if (item instanceof GroupItem) {
-          itemCount += ((GroupItem) item).getElements().size();
-        } else {
-          itemCount++;
-        }
+        itemCount += Items.get(ItemProperties.class, item)
+            .map(itemProps -> itemProps.getItemCount(item))
+            .orElse(0);
       }
     } else {
       this.toGroup = null;

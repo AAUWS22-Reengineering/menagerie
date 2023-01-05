@@ -45,6 +45,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import menagerie.gui.ItemInfoBox;
+import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.preview.ItemPreview;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.screens.dialogs.ConfirmationScreen;
 import menagerie.model.menagerie.Item;
@@ -335,12 +337,11 @@ public class SlideshowScreen extends Screen {
 
     updateCountLabel();
 
-    if (item instanceof MediaItem) {
-      mediaView.preview(item);
-      infoBox.setItem(item);
-    } else {
-      mediaView.preview(null);
-    }
+    Items.get(ItemPreview.class, item).ifPresent(itemPreview -> {
+      if (!itemPreview.previewInSlideshow(mediaView, infoBox, item)) {
+        mediaView.preview(null);
+      }
+    });
   }
 
   /**

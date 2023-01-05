@@ -10,7 +10,7 @@ public class MediaItemSimilarity implements ItemSimilarity {
   }
 
   @Override
-  public boolean hasNoSimilarity(Item item) {
+  public boolean hasNoSimilar(Item item) {
     return ((MediaItem) item).hasNoSimilar();
   }
 

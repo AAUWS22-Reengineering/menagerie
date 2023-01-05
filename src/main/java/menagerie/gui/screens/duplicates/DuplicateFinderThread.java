@@ -26,10 +26,14 @@ package menagerie.gui.screens.duplicates;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
+import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.util.CancellableThread;
 import menagerie.util.listeners.ObjectListener;
 import menagerie.util.listeners.PokeListener;
@@ -71,7 +75,8 @@ public class DuplicateFinderThread extends CancellableThread {
       if (!running) {
         break;
       }
-      if (!(item1 instanceof MediaItem) || ((MediaItem) item1).hasNoSimilar()) {
+      Optional<ItemSimilarity> itemSim1 = Items.get(ItemSimilarity.class, item1);
+      if (itemSim1.isEmpty() || !itemSim1.get().isEligibleForSimCalc(item1) || itemSim1.get().hasNoSimilar(item1)) {
         continue;
       }
 
@@ -79,7 +84,9 @@ public class DuplicateFinderThread extends CancellableThread {
         if (!running) {
           break;
         }
-        if (!(item2 instanceof MediaItem) || ((MediaItem) item2).hasNoSimilar() ||
+
+        Optional<ItemSimilarity> itemSim2 = Items.get(ItemSimilarity.class, item2);
+        if (itemSim2.isEmpty() || !itemSim2.get().isEligibleForSimCalc(item2) || itemSim2.get().hasNoSimilar(item2) ||
             item1.equals(item2)) {
           continue;
         }
@@ -105,10 +112,6 @@ public class DuplicateFinderThread extends CancellableThread {
       finishListener.pass(pairs);
     }
     running = false;
-  }
-
-  public List<SimilarPair<MediaItem>> getPairs() {
-    return pairs;
   }
 
 }

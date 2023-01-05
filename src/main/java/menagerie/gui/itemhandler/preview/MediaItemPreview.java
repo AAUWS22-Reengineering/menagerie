@@ -4,6 +4,7 @@ import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import javafx.scene.image.Image;
+import menagerie.gui.ItemInfoBox;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
@@ -107,5 +108,12 @@ public class MediaItemPreview implements ItemPreview {
     if (((MediaItem) currentlyPreviewing).isVideo()) {
       previewMediaView.stop();
     }
+  }
+
+  @Override
+  public boolean previewInSlideshow(DynamicMediaView mediaView, ItemInfoBox infoBox, Item item) {
+    mediaView.preview(item);
+    infoBox.setItem(item);
+    return true;
   }
 }

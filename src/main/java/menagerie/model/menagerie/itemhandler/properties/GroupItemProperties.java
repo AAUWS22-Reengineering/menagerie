@@ -23,6 +23,11 @@ public class GroupItemProperties implements ItemProperties {
   }
 
   @Override
+  public int getItemCount(Item item) {
+    return ((GroupItem) item).getElements().size();
+  }
+
+  @Override
   public GroupItem getParentGroup(Item item) {
     return null;
   }
