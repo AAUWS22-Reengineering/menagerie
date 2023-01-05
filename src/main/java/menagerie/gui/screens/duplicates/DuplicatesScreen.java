@@ -112,7 +112,7 @@ public class DuplicatesScreen extends Screen {
 
   private void registerCellFactories() {
     leftTagList.setCellFactory(param -> {
-      TagListCell c = new OtherMissingTagListCell(() -> getCurrentPair().getObject2());
+      TagListCell c = new OtherMissingTagListCell(() -> currentPair.getObject2());
       MenuItem addToOther = new MenuItem("Add to other");
       addToOther.setOnAction(event -> currentPair.getObject2().addTag(c.getItem()));
       MenuItem removeTag = new MenuItem("Remove tag");
@@ -123,7 +123,7 @@ public class DuplicatesScreen extends Screen {
       return c;
     });
     rightTagList.setCellFactory(param -> {
-      TagListCell c = new OtherMissingTagListCell(() -> getCurrentPair().getObject1());
+      TagListCell c = new OtherMissingTagListCell(() -> currentPair.getObject1());
       MenuItem addToOther = new MenuItem("Add to other");
       addToOther.setOnAction(event -> currentPair.getObject1().addTag(c.getItem()));
       MenuItem removeTag = new MenuItem("Remove tag");
@@ -133,10 +133,6 @@ public class DuplicatesScreen extends Screen {
           event -> cm.show(c.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
       return c;
     });
-  }
-
-  private SimilarPair<MediaItem> getCurrentPair() {
-    return currentPair;
   }
 
   private void registerContextMenuRequestedEvents() {
