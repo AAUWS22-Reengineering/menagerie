@@ -44,11 +44,11 @@ import java.util.Optional;
 public class Items {
 
   // <Interface, <ItemType, Implementation>>
-  private static final HashMap<Class<?>, HashMap<Class<? extends Item>, Object>> register;
+  private static final HashMap<Class<?>, HashMap<Class<? extends Item>, Object>> registry;
 
   // Register new implementations here
   static {
-    register = new HashMap<>();
+    registry = new HashMap<>();
 
     register(ItemInfoBoxRenderer.class, MediaItem.class, new MediaItemInfoBoxRenderer());
     register(ItemOpener.class, GroupItem.class, new GroupItemOpener());
@@ -80,7 +80,7 @@ public class Items {
    * @param <T> Class of the interface.
    */
   public static <T> void register(Class<T> interfaceClass, Class<? extends Item> itemType, T interfaceImpl) {
-    HashMap<Class<? extends Item>, Object> registeredImpls = register.computeIfAbsent(interfaceClass, k -> new HashMap<>());
+    HashMap<Class<? extends Item>, Object> registeredImpls = registry.computeIfAbsent(interfaceClass, k -> new HashMap<>());
 
     if (registeredImpls.get(itemType) != null) {
       throw new IllegalStateException("must not register more than one interface implementations for the same item type");
@@ -90,7 +90,7 @@ public class Items {
   }
 
   public static <T> T unregister(Class<T> interfaceClass, Class<? extends Item> itemType) {
-    HashMap<Class<? extends Item>, Object> registeredImpls = register.computeIfAbsent(interfaceClass, k -> new HashMap<>());
+    HashMap<Class<? extends Item>, Object> registeredImpls = registry.computeIfAbsent(interfaceClass, k -> new HashMap<>());
     return (T) registeredImpls.remove(itemType);
   }
 
@@ -103,7 +103,7 @@ public class Items {
    * @return Optional of interface implementation.
    */
   public static <T> Optional<T> get(Class<T> interfaceClass, Item item) {
-    HashMap<Class<? extends Item>, Object> registeredImpls = register.get(interfaceClass);
+    HashMap<Class<? extends Item>, Object> registeredImpls = registry.get(interfaceClass);
     if (registeredImpls != null) {
       return getRecursive(registeredImpls, item != null ? item.getClass() : Item.class);
     }

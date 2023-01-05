@@ -354,31 +354,6 @@ public class ImportJob {
       }
     }
     return anyMinimallySimilar;
-
-
-    /*boolean anyMinimallySimilar = false;
-    Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, i);
-    if (!item.equals(i) && itemSim.isPresent() && itemSim.get().isEligibleForSimCalc(i)) {
-      double similarity = ((MediaItem) i).getSimilarityTo(item);
-
-      if (similarity > MediaItem.MIN_CONFIDENCE) {
-        anyMinimallySimilar = true;
-        if (((MediaItem) i).hasNoSimilar()) {
-          ((MediaItem) i).setHasNoSimilar(false);
-        }
-      }
-
-      if (similarity >= confidenceSquare ||
-          (similarity >= confidence && item.getHistogram().isColorful() &&
-              ((MediaItem) i).getHistogram().isColorful())) {
-        synchronized (this) {
-          LOGGER.info("Found similar item (To ID: " + item.getId() + "): " + i.getId());
-          final var similarPair = new SimilarPair<>(item, (MediaItem) i, similarity);
-          similarTo.add(similarPair);
-        }
-      }
-    }
-    return anyMinimallySimilar;*/
   }
 
   /**
