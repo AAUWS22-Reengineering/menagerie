@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipFile;
@@ -47,6 +48,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import menagerie.gui.Main;
+import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.preview.ItemPreview;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
@@ -140,66 +143,9 @@ public class DynamicMediaView extends StackPane {
     imageView.setTrueImage(null);
     hideAllViews();
 
-    if (item instanceof MediaItem) {
-      try {
-        if (((MediaItem) item).isImage()) {
-          if (getVideoView() != null) {
-            getVideoView().stop();
-          }
-          imageView.setTrueImage(((MediaItem) item).getImage());
-          showImageView();
-        } else if (((MediaItem) item).isVideo() && getVideoView() != null) {
-          imageView.setTrueImage(null);
-          getVideoView().startMedia(((MediaItem) item).getFile().getAbsolutePath());
-          showVideoView();
-        } else if (Filters.RAR_NAME_FILTER.accept(((MediaItem) item).getFile())) {
-          try (Archive a = new Archive(
-              Files.newInputStream(((MediaItem) item).getFile().toPath()))) {
-            List<FileHeader> fileHeaders = a.getFileHeaders();
-            if (!fileHeaders.isEmpty()) {
-              try (InputStream is = a.getInputStream(fileHeaders.get(0))) {
-                imageView.setTrueImage(new Image(is));
-              }
-            }
-          } catch (RarException | IOException | NullPointerException e) {
-            LOGGER.log(Level.INFO, "Failed to preview RAR: " + ((MediaItem) item).getFile());
-          }
-          showImageView();
-        } else if (Filters.ZIP_NAME_FILTER.accept(((MediaItem) item).getFile())) {
-          try (ZipFile zip = new ZipFile(((MediaItem) item).getFile())) {
-            if (zip.entries().hasMoreElements()) {
-              try (InputStream is = zip.getInputStream(zip.entries().nextElement())) {
-                imageView.setTrueImage(new Image(is));
-              }
-            }
-          } catch (IOException e) {
-            LOGGER.log(Level.INFO, "Failed to preview ZIP: " + ((MediaItem) item).getFile());
-          }
-        } else if (Filters.PDF_NAME_FILTER.accept(((MediaItem) item).getFile())) {
-          if (currentPDF != null) {
-            currentPDF.close();
-          }
-          currentPDF = PDDocument.load(((MediaItem) item).getFile());
-          setPDFPage(0);
-          showPDFView();
-        } else if (Files.probeContentType(((MediaItem) item).getFile().toPath())
-            .equalsIgnoreCase("text/plain")) {
-          textView.setText(
-              String.join("\n", Files.readAllLines(((MediaItem) item).getFile().toPath())));
-          showTextView();
-        } else {
-          return false; // Unknown file type, can't preview it
-        }
-      } catch (IOException e) {
-        LOGGER.log(Level.SEVERE, "Error previewing media: " + item, e);
-      }
-    } else if (item instanceof GroupItem) {
-      if (!((GroupItem) item).getElements().isEmpty()) {
-        preview(((GroupItem) item).getElements().get(0));
-      }
-    }
-
-    return true;
+    return Items.get(ItemPreview.class, item)
+        .map(preview -> preview.preview(this, item))
+        .orElse(true);
   }
 
   /**
@@ -215,7 +161,7 @@ public class DynamicMediaView extends StackPane {
   /**
    * Shows the image view.
    */
-  private void showImageView() {
+  public void showImageView() {
     hideAllViews();
     getChildren().add(getImageView());
   }
@@ -223,7 +169,7 @@ public class DynamicMediaView extends StackPane {
   /**
    * Shows the video view, if VLCJ is loaded.
    */
-  private void showVideoView() {
+  public void showVideoView() {
     hideAllViews();
     if (getVideoView() != null) {
       getChildren().add(getVideoView());
@@ -233,7 +179,7 @@ public class DynamicMediaView extends StackPane {
   /**
    * Shows the text view
    */
-  private void showTextView() {
+  public void showTextView() {
     hideAllViews();
     getChildren().add(textView);
   }
@@ -241,7 +187,7 @@ public class DynamicMediaView extends StackPane {
   /**
    * Shows the PDF view with controls
    */
-  private void showPDFView() {
+  public void showPDFView() {
     hideAllViews();
     getChildren().addAll(getImageView(), pdfControlsPane);
   }
@@ -278,7 +224,7 @@ public class DynamicMediaView extends StackPane {
    *
    * @param page Index to go to
    */
-  private void setPDFPage(int page) {
+  public void setPDFPage(int page) {
     if (currentPDF == null || page < 0 || page >= currentPDF.getNumberOfPages()) {
       return;
     }
@@ -358,4 +304,15 @@ public class DynamicMediaView extends StackPane {
     }
   }
 
+  public PDDocument getCurrentPDF() {
+    return currentPDF;
+  }
+
+  public void setCurrentPDF(PDDocument currentPDF) {
+    this.currentPDF = currentPDF;
+  }
+
+  public TextArea getTextView() {
+    return textView;
+  }
 }

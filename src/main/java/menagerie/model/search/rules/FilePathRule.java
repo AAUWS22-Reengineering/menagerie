@@ -24,8 +24,12 @@
 
 package menagerie.model.search.rules;
 
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+
+import java.util.Optional;
 
 /**
  * Rule that checks if the item's file path contains a string.
@@ -45,7 +49,9 @@ public class FilePathRule extends SearchRule {
 
   @Override
   protected boolean checkRule(Item item) {
-    return item instanceof MediaItem && ((MediaItem) item).getFile().getAbsolutePath().contains(text);
+    return Items.get(ItemProperties.class, item).map(itemProps ->
+        itemProps.isFileBased(item) && itemProps.getFile(item).getAbsolutePath().contains(text))
+        .orElse(false);
   }
 
   @Override

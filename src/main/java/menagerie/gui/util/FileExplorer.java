@@ -1,41 +1,24 @@
 package menagerie.gui.util;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.opener.ItemOpener;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
+
+import java.util.List;
 
 public class FileExplorer {
 
   private FileExplorer() {
   }
 
-  private static final Logger LOGGER = Logger.getLogger(FileExplorer.class.getName());
-
   public static void openExplorer(List<Item> selected) {
     Item last = selected.get(selected.size() - 1);
-    if (last instanceof MediaItem) {
-      try {
-        Runtime.getRuntime()
-            .exec("explorer.exe /select, " + ((MediaItem) last).getFile().getAbsolutePath());
-      } catch (IOException e) {
-        LOGGER.log(Level.SEVERE, "Error opening file in explorer", e);
-      }
-    }
+    Items.get(ItemOpener.class, last).ifPresent(itemOpener -> itemOpener.openInExplorer(last));
   }
 
   public static void openDefault(List<Item> selected) {
     Item last = selected.get(selected.size() - 1);
-    if (last instanceof MediaItem) {
-      try {
-        Desktop.getDesktop().open(((MediaItem) last).getFile());
-      } catch (IOException e) {
-        LOGGER.log(Level.WARNING, "Error opening file with system default program", e);
-      }
-    }
+    Items.get(ItemOpener.class, last).ifPresent(itemOpener -> itemOpener.open(last, null));
   }
 
   public static boolean hasAllowedFileEnding(String name) {

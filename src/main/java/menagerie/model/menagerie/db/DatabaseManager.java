@@ -41,6 +41,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
@@ -49,6 +51,7 @@ import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
 import menagerie.model.menagerie.histogram.HistogramReadException;
 import menagerie.model.menagerie.histogram.ImageHistogram;
+import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
 import menagerie.util.listeners.ObjectListener;
 
 /**
@@ -788,9 +791,7 @@ public class DatabaseManager extends Thread {
    */
   private void sortGroupElements(Menagerie menagerie) {
     for (Item item : menagerie.getItems()) {
-      if (item instanceof GroupItem groupItem) {
-        groupItem.getElements().sort(Comparator.comparingInt(MediaItem::getPageIndex));
-      }
+      Items.get(ItemGroupHandler.class, item).ifPresent(itemGroupHandler -> itemGroupHandler.sortItems(item));
     }
   }
 

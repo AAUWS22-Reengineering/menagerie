@@ -24,11 +24,14 @@
 
 package menagerie.model.search;
 
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 public class GroupSearch extends Search {
 
@@ -63,14 +66,10 @@ public class GroupSearch extends Search {
 
   @Override
   protected boolean isItemValid(Item item) {
-    if (item instanceof MediaItem) {
-      if (!((MediaItem) item).isInGroup() || !((MediaItem) item).getGroup().equals(group)) {
-        return false;
-      }
-    } else {
+    Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+    if (itemProps.isEmpty() || !itemProps.get().isInGroup(item) || !itemProps.get().getParentGroup(item).equals(group)) {
       return false;
     }
-
     return super.isItemValid(item);
   }
 

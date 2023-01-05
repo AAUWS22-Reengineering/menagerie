@@ -34,10 +34,12 @@ import jcuda.driver.CUdeviceptr;
 import jcuda.driver.CUfunction;
 import jcuda.driver.CUmodule;
 import jcuda.driver.JCudaDriver;
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.histogram.ImageHistogram;
+import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 
 
 public class CUDADuplicateFinder {
@@ -136,9 +138,11 @@ public class CUDADuplicateFinder {
     // Remove all items without histograms
     List<MediaItem> trueSet = new ArrayList<>();
     set.forEach(item -> {
-      if (item instanceof MediaItem && ((MediaItem) item).getHistogram() != null) {
-        trueSet.add((MediaItem) item);
-      }
+      Items.get(ItemSimilarity.class, item).ifPresent(itemSim -> {
+        if (itemSim.isEligibleForSimCalc(item)) {
+          trueSet.add((MediaItem) item);
+        }
+      });
     });
     return trueSet;
   }

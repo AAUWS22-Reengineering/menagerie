@@ -24,6 +24,21 @@
 
 package menagerie.model.menagerie.importer;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import menagerie.gui.itemhandler.Items;
+import menagerie.gui.util.ItemUtil;
+import menagerie.model.SimilarPair;
+import menagerie.model.menagerie.GroupItem;
+import menagerie.model.menagerie.Item;
+import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.Menagerie;
+import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
+import menagerie.settings.MenagerieSettings;
+import menagerie.util.FileUtil;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,20 +50,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import menagerie.gui.util.ItemUtil;
-import menagerie.model.SimilarPair;
-import menagerie.model.menagerie.GroupItem;
-import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.model.menagerie.Menagerie;
-import menagerie.settings.MenagerieSettings;
-import menagerie.util.FileUtil;
 
 /**
  * A runnable job that will import a file.
@@ -277,9 +281,9 @@ public class ImportJob {
 
     LOGGER.info("Checking for hash duplicates: " + item.getId());
     for (Item i : menagerie.getItems()) {
-      if (i instanceof MediaItem mediaItem) {
-        if (!i.equals(item) && mediaItem.getMD5() != null &&
-            mediaItem.getMD5().equalsIgnoreCase(item.getMD5())) {
+      Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, i);
+      if (itemSim.isPresent()) {
+        if (itemSim.get().isExactDuplicate(item, i)) {
           synchronized (this) {
             duplicateOf = (MediaItem) i;
           }
@@ -329,8 +333,10 @@ public class ImportJob {
   private boolean trySimilarItem(double confidence, double confidenceSquare, Item i) {
 
     boolean anyMinimallySimilar = false;
-    if (i instanceof MediaItem && !item.equals(i) && ((MediaItem) i).getHistogram() != null) {
-      double similarity = ((MediaItem) i).getSimilarityTo(item);
+    Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, i);
+    if (!item.equals(i) && itemSim.isPresent() && itemSim.get().isEligibleForSimCalc(i)) {
+
+      double similarity = itemSim.get().getSimilarity(item, i);
 
       if (similarity > MediaItem.MIN_CONFIDENCE) {
         anyMinimallySimilar = true;
@@ -339,9 +345,7 @@ public class ImportJob {
         }
       }
 
-      if (similarity >= confidenceSquare ||
-          (similarity >= confidence && item.getHistogram().isColorful() &&
-           ((MediaItem) i).getHistogram().isColorful())) {
+      if (itemSim.get().isSimilarTo(item, i, confidenceSquare, confidence)) {
         synchronized (this) {
           LOGGER.info("Found similar item (To ID: " + item.getId() + "): " + i.getId());
           final var similarPair = new SimilarPair<>(item, (MediaItem) i, similarity);

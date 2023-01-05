@@ -24,8 +24,10 @@
 
 package menagerie.model.search.rules;
 
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
+import menagerie.model.menagerie.itemhandler.search.ItemSearch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,17 +56,7 @@ public class TitleRule extends SearchRule {
    */
   @Override
   protected boolean checkRule(Item item) {
-    if (item instanceof GroupItem) {
-      final String title = ((GroupItem) item).getTitle().toLowerCase();
-
-      for (String word : words) {
-        if (!title.contains(word)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
+    return Items.get(ItemSearch.class, item).map(itemSearch -> itemSearch.titleContains(item, words)).orElse(false);
   }
 
   @Override

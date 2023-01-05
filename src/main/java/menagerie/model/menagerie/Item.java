@@ -42,7 +42,7 @@ public abstract class Item implements Comparable<Item> {
 
   private boolean invalidated = false;
 
-  protected final Menagerie menagerie;
+  protected Menagerie menagerie;
   protected int id;
   protected long dateAdded;
   protected ObservableList<Tag> tags = FXCollections.observableArrayList();

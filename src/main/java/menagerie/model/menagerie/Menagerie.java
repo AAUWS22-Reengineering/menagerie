@@ -34,8 +34,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.db.DatabaseManager;
+import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.search.Search;
 
 /**
@@ -79,9 +82,11 @@ public class Menagerie {
     nextTagID = databaseManager.getHighestTagID() + 1;
 
     for (Item item : items) {
-      if (item instanceof MediaItem) {
-        fileSet.add(((MediaItem) item).getFile());
-      }
+      Items.get(ItemProperties.class, item).ifPresent(itemProps -> {
+        if (itemProps.isFileBased(item)) {
+          fileSet.add(itemProps.getFile(item));
+        }
+      });
     }
   }
 
@@ -181,19 +186,9 @@ public class Menagerie {
     }
 
     for (Item item : elements) {
-      if (item instanceof MediaItem) {
-        group.addItem((MediaItem) item);
-      } else if (item instanceof ArchiveItem) {
-        // Don't touch it
-        // TODO
-      } else if (item instanceof GroupItem) {
-        List<MediaItem> e = new ArrayList<>(((GroupItem) item).getElements());
-        item.getTags().forEach(group::addTag);
-        forgetItem(item);
-        e.forEach(group::addItem);
-      } else {
-        return null;
-      }
+      GroupItem finalGroup = group;
+      Items.get(ItemGroupHandler.class, item).ifPresent(itemGroupHandler ->
+          itemGroupHandler.addToGroup(item, finalGroup));
     }
 
     // Update searches
@@ -416,9 +411,11 @@ public class Menagerie {
    * @param item Item that was removed.
    */
   void itemRemoved(Item item) {
-    if (item instanceof MediaItem) {
-      fileSet.remove(((MediaItem) item).getFile());
-    }
+    Items.get(ItemProperties.class, item).ifPresent(itemProps -> {
+      if (itemProps.isFileBased(item) && itemProps.getFile(item) != null) {
+        fileSet.remove(itemProps.getFile(item));
+      }
+    });
   }
 
 }

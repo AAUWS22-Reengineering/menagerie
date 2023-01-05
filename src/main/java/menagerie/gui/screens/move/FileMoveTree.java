@@ -28,7 +28,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
+import menagerie.gui.itemhandler.Items;
+import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 public class FileMoveTree {
 
@@ -37,7 +42,7 @@ public class FileMoveTree {
   public FileMoveTree() {
   }
 
-  public FileMoveTree(List<MediaItem> toAdd) {
+  public FileMoveTree(List<Item> toAdd) {
     toAdd.forEach(this::addItem);
   }
 
@@ -45,15 +50,17 @@ public class FileMoveTree {
     return roots;
   }
 
-  public void addItem(MediaItem item) {
-    if (!item.getFile().exists()) {
+  public void addItem(Item item) {
+    Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+    if (itemProps.isEmpty() || !itemProps.get().isFileBased(item) ||
+        itemProps.get().getFile(item) == null || !itemProps.get().getFile(item).exists()) {
       return;
     }
 
     // Get list of stops to traverse to reach the file
     List<File> stops = new ArrayList<>();
     List<File> systemRoots = Arrays.asList(File.listRoots());
-    File file = item.getFile().getParentFile();
+    File file = itemProps.get().getFile(item).getParentFile();
     while (!systemRoots.contains(file)) {
       stops.add(0, file);
       file = file.getParentFile();

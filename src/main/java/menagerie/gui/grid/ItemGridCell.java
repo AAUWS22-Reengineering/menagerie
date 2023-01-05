@@ -38,10 +38,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import menagerie.gui.Main;
+import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.gridcell.ItemCellHandler;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
 import menagerie.util.listeners.ObjectListener;
 import org.controlsfx.control.GridCell;
 
@@ -139,11 +139,8 @@ public class ItemGridCell extends GridCell<Item> {
       initSelected(item);
       initThumbnail(item);
 
-      if (item instanceof MediaItem) {
-        initMediaItem((MediaItem) item);
-      } else if (item instanceof GroupItem) {
-        initGroupItem((GroupItem) item);
-      }
+      Items.get(ItemCellHandler.class, item).ifPresent(itemCellHandler ->
+          itemCellHandler.initialize(item, this));
     }
   }
 
@@ -163,10 +160,9 @@ public class ItemGridCell extends GridCell<Item> {
       if (obj instanceof BooleanProperty) {
         ((BooleanProperty) obj).removeListener(selectedListener);
       }
-      if (getItem() instanceof GroupItem) {
-        ((GroupItem) getItem()).titleProperty().removeListener(groupTitleListener);
-        ((GroupItem) getItem()).getElements().removeListener(groupListListener);
-      }
+
+      Items.get(ItemCellHandler.class, getItem()).ifPresent(itemCellHandler ->
+          itemCellHandler.cleanUp(getItem(), this));
     }
   }
 
@@ -178,51 +174,6 @@ public class ItemGridCell extends GridCell<Item> {
     centerLabel.setText(null);
     bottomRightLabel.setText(null);
     tagView.setImage(null);
-  }
-
-  /**
-   * Initializes/displays a media item in this cell
-   *
-   * @param item Item to init/display
-   */
-  private void initMediaItem(MediaItem item) {
-    if (item.isVideo()) {
-      tagView.setImage(videoTagImage);
-      if (!Main.isVlcjLoaded()) {
-        centerLabel.setText(item.getFile().getName());
-      }
-    } else {
-      centerLabel.setText(null);
-    }
-    if (item.isInGroup()) {
-      bottomRightLabel.setText(item.getPageIndex() + "");
-    } else {
-      bottomRightLabel.setText(null);
-    }
-    if (!item.isImage() && !item.isVideo()) {
-      centerLabel.setText(item.getFile().getName());
-    }
-    Tooltip tt = new Tooltip(item.getFile().getAbsolutePath());
-    tt.setWrapText(true);
-    setTooltip(tt);
-  }
-
-  /**
-   * Initializes/displays a group item in this cell
-   *
-   * @param item Group to display
-   */
-  private void initGroupItem(GroupItem item) {
-    centerLabel.setText(item.getTitle());
-    Tooltip tt = new Tooltip(item.getTitle());
-    tt.setWrapText(true);
-    setTooltip(tt);
-    item.titleProperty().addListener(groupTitleListener);
-
-    tagView.setImage(groupTagImage);
-
-    bottomRightLabel.setText(item.getElements().size() + "");
-    item.getElements().addListener(groupListListener);
   }
 
   /**
@@ -255,7 +206,7 @@ public class ItemGridCell extends GridCell<Item> {
       ((BooleanProperty) obj).addListener(selectedListener);
     } else {
       final boolean sel = getGridView() instanceof ItemGridView &&
-                          ((ItemGridView) getGridView()).isSelected(item);
+          ((ItemGridView) getGridView()).isSelected(item);
       BooleanProperty prop = new SimpleBooleanProperty(sel);
       prop.addListener(selectedListener);
       item.getMetadata().put("selected", prop);
@@ -263,4 +214,35 @@ public class ItemGridCell extends GridCell<Item> {
     }
   }
 
+  public static Image getGroupTagImage() {
+    return groupTagImage;
+  }
+
+  public static Image getVideoTagImage() {
+    return videoTagImage;
+  }
+
+  public ImageView getThumbnailView() {
+    return thumbnailView;
+  }
+
+  public ImageView getTagView() {
+    return tagView;
+  }
+
+  public Label getCenterLabel() {
+    return centerLabel;
+  }
+
+  public Label getBottomRightLabel() {
+    return bottomRightLabel;
+  }
+
+  public InvalidationListener getGroupTitleListener() {
+    return groupTitleListener;
+  }
+
+  public InvalidationListener getGroupListListener() {
+    return groupListListener;
+  }
 }

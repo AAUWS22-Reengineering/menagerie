@@ -44,11 +44,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import menagerie.gui.itemhandler.Items;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.file.ItemFileHandler;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 public class MoveFilesScreen extends Screen {
 
@@ -56,7 +59,7 @@ public class MoveFilesScreen extends Screen {
   private final VBox treeVBox = new VBox(5);
 
   private FileMoveTree tree = null;
-  private List<MediaItem> toMove = null;
+  private List<Item> toMove = null;
 
   public MoveFilesScreen() {
     addEventHandler(KeyEvent.KEY_PRESSED, event -> {
@@ -121,11 +124,7 @@ public class MoveFilesScreen extends Screen {
 
     this.toMove = new ArrayList<>();
     toMove.forEach(item -> {
-      if (item instanceof GroupItem) {
-        this.toMove.addAll(((GroupItem) item).getElements());
-      } else if (item instanceof MediaItem) {
-        this.toMove.add((MediaItem) item);
-      }
+      Items.get(ItemProperties.class, item).ifPresent(itemProps -> this.toMove.addAll(itemProps.getItems(item)));
     });
 
     tree = new FileMoveTree(this.toMove);
@@ -152,9 +151,8 @@ public class MoveFilesScreen extends Screen {
   }
 
   private static void moveRecurse(Path path, FileMoveNode node) {
-    for (MediaItem item : node.getItems()) {
-      File target = path.resolve(item.getFile().getName()).toFile();
-      item.moveFile(target);
+    for (Item item : node.getItems()) {
+      Items.get(ItemFileHandler.class, item).ifPresent(itemFileHandler -> itemFileHandler.move(path, item));
     }
 
     for (FileMoveNode subNode : node.getNodes()) {
