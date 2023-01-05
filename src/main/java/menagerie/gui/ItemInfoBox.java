@@ -24,11 +24,6 @@
 
 package menagerie.gui;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Date;
-import java.util.Locale;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
@@ -36,9 +31,15 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
 import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
 import menagerie.model.menagerie.Item;
+
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.Date;
+import java.util.Locale;
 
 public class ItemInfoBox extends VBox {
 
@@ -120,15 +121,12 @@ public class ItemInfoBox extends VBox {
 
     if (item != null) {
       idLabel.setText("ID: " + item.getId());
-      dateLabel.setText(
-          DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
-              .withZone(ZoneId.systemDefault()).format(new Date(item.getDateAdded()).toInstant()));
+      dateLabel.setText(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
+          .withZone(ZoneId.systemDefault()).format(new Date(item.getDateAdded()).toInstant()));
     }
 
-    ItemInfoBoxRenderer itemInfoBoxRenderer = Items.get(ItemInfoBoxRenderer.class, item);
-    if (itemInfoBoxRenderer != null) {
-      itemInfoBoxRenderer.setItemInfoBoxLabels(item, fileSizeLabel, filePathLabel, resolutionLabel);
-    }
+    Items.get(ItemInfoBoxRenderer.class, item).ifPresent(itemInfoBoxRenderer ->
+        itemInfoBoxRenderer.setItemInfoBoxLabels(item, fileSizeLabel, filePathLabel, resolutionLabel));
   }
 
 }

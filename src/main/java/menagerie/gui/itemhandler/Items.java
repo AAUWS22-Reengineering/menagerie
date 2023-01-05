@@ -1,15 +1,25 @@
 package menagerie.gui.itemhandler;
 
+import menagerie.gui.itemhandler.properties.GroupItemProperties;
+import menagerie.gui.itemhandler.properties.ItemProperties;
+import menagerie.gui.itemhandler.properties.MediaItemProperties;
+import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
+import menagerie.gui.itemhandler.gridviewselector.MediaItemGridViewSelector;
 import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
 import menagerie.gui.itemhandler.infoboxrenderer.MediaItemInfoBoxRenderer;
 import menagerie.gui.itemhandler.opener.GroupItemOpener;
 import menagerie.gui.itemhandler.opener.ItemOpener;
 import menagerie.gui.itemhandler.opener.MediaItemOpener;
+import menagerie.gui.itemhandler.preview.ItemPreview;
+import menagerie.gui.itemhandler.preview.MediaItemPreview;
+import menagerie.gui.itemhandler.rename.GroupItemRenamer;
+import menagerie.gui.itemhandler.rename.ItemRenamer;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Registry for implementations of item-type dependent functionality.
@@ -29,6 +39,11 @@ public class Items {
     register(ItemInfoBoxRenderer.class, MediaItem.class, new MediaItemInfoBoxRenderer());
     register(ItemOpener.class, GroupItem.class, new GroupItemOpener());
     register(ItemOpener.class, MediaItem.class, new MediaItemOpener());
+    register(ItemGridViewSelector.class, MediaItem.class, new MediaItemGridViewSelector());
+    register(ItemProperties.class, GroupItem.class, new GroupItemProperties());
+    register(ItemProperties.class, MediaItem.class, new MediaItemProperties());
+    register(ItemPreview.class, MediaItem.class, new MediaItemPreview());
+    register(ItemRenamer.class, GroupItem.class, new GroupItemRenamer());
   }
 
   private Items() {
@@ -57,29 +72,29 @@ public class Items {
    * @param interfaceClass Interface of the desired implementation.
    * @param item Item instance (may be null).
    * @param <T> Class of interface.
-   * @return Interface implementation, or null if none was registered.
+   * @return Optional of interface implementation.
    */
-  public static <T> T get(Class<T> interfaceClass, Item item) {
+  public static <T> Optional<T> get(Class<T> interfaceClass, Item item) {
     HashMap<Class<? extends Item>, Object> registeredImpls = register.get(interfaceClass);
     if (registeredImpls != null) {
       return getRecursive(registeredImpls, item != null ? item.getClass() : Item.class);
     }
-    return null;
+    return Optional.empty();
   }
 
   /**
    * Get registered implementation for specified item type. If none is found,
    * recursively trace the inheritance tree until Item.
    */
-  private static <T> T getRecursive(HashMap<Class<? extends Item>, Object> registeredImpls,
+  private static <T> Optional<T> getRecursive(HashMap<Class<? extends Item>, Object> registeredImpls,
                                     Class<? extends Item> itemClass) {
     if (registeredImpls != null) {
       T impl = (T) registeredImpls.get(itemClass);
       if (impl == null && itemClass != Item.class) {
         return getRecursive(registeredImpls, (Class<? extends Item>) itemClass.getSuperclass());
       }
-      return impl;
+      return Optional.ofNullable(impl);
     }
-    return null;
+    return Optional.empty();
   }
 }

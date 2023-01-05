@@ -52,8 +52,12 @@ import menagerie.duplicates.DuplicateFinder;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.handler.*;
+import menagerie.gui.itemhandler.properties.ItemProperties;
+import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
 import menagerie.gui.itemhandler.opener.ItemOpener;
 import menagerie.gui.itemhandler.Items;
+import menagerie.gui.itemhandler.preview.ItemPreview;
+import menagerie.gui.itemhandler.rename.ItemRenamer;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.media.DynamicVideoView;
 import menagerie.gui.predictive.PredictiveTextField;
@@ -744,10 +748,8 @@ public class MainController {
   private void registerCellMouseClickEvent(ItemGridCell c) {
     c.setOnMouseClicked(event -> {
       if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() > 1) {
-        ItemOpener itemOpener = Items.get(ItemOpener.class, c.getItem());
-        if (itemOpener != null) {
-          itemOpener.open(c.getItem(), this);
-        }
+        Items.get(ItemOpener.class, c.getItem()).
+            ifPresent(itemOpener -> itemOpener.open(c.getItem(), this));
       }
     });
   }
@@ -818,9 +820,8 @@ public class MainController {
   private void registerCellDragDetectedEvent(ItemGridCell c) {
     c.setOnDragDetected(event -> {
       if (!itemGridView.getSelected().isEmpty() && event.isPrimaryButtonDown()) {
-        if (c.getItem() instanceof MediaItem && !itemGridView.isSelected(c.getItem())) {
-          itemGridView.select(c.getItem(), event.isControlDown(), event.isShiftDown());
-        }
+        Items.get(ItemGridViewSelector.class, c.getItem()).
+            ifPresent(itemGridViewSelector -> itemGridViewSelector.select(c.getItem(), itemGridView, event));
 
         Dragboard db = c.startDragAndDrop(TransferMode.ANY);
         GridViewUtil.doDragAndDrop(db, itemGridView);
@@ -878,13 +879,11 @@ public class MainController {
 
     int groupCount = 0, mediaCount = 0, itemsInGroupCount = 0;
     for (Item item : selected) {
-      if (item instanceof GroupItem) {
-        groupCount++;
-      } else if (item instanceof MediaItem) {
-        mediaCount++;
-        if (((MediaItem) item).isInGroup()) {
-          itemsInGroupCount++;
-        }
+      Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+      if (itemProps.isPresent()) {
+        groupCount += itemProps.get().isGroup(item) ? 1 : 0;
+        mediaCount += itemProps.get().isMedia(item) ? 1 : 0;
+        itemsInGroupCount += itemProps.get().isInGroup(item) ? 1 : 0;
       }
     }
 
@@ -978,7 +977,7 @@ public class MainController {
    *
    * @param group Group to rename
    */
-  private void openGroupRenameDialog(GroupItem group) {
+  public void openGroupRenameDialog(GroupItem group) {
     new TextDialogScreen().open(screenPane, "Rename group", "Current: " + group.getTitle(),
         group.getTitle(), group::setTitle, null);
   }
@@ -1034,9 +1033,9 @@ public class MainController {
   }
 
   private void stopPreview(List<Item> items) {
-    if (currentlyPreviewing instanceof MediaItem && items.contains(currentlyPreviewing) &&
-        ((MediaItem) currentlyPreviewing).isVideo()) {
-      previewMediaView.stop();
+    if (items.contains(currentlyPreviewing)) {
+      Items.get(ItemPreview.class, currentlyPreviewing).ifPresent(itemPreview ->
+          itemPreview.stop(previewMediaView, currentlyPreviewing));
     }
   }
 
@@ -1292,15 +1291,13 @@ public class MainController {
    * @param item Item to select
    */
   private void selectItemInGridView(Item item) {
+    Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
     if (itemGridView.getItems().contains(item)) {
       itemGridView.select(item, false, false);
-    } else if (item instanceof MediaItem) {
-      GroupItem group = ((MediaItem) item).getGroup();
-      if (group != null && itemGridView.getItems().contains(group)) {
-        itemGridView.select(group, false, false);
-      } else {
-        Toolkit.getDefaultToolkit().beep();
-      }
+    } else if (itemProps.isPresent() && itemProps.get().isInGroup(item)) {
+      itemGridView.select(itemProps.get().getParentGroup(item), false, false);
+    } else {
+      Toolkit.getDefaultToolkit().beep();
     }
   }
 
@@ -1572,18 +1569,8 @@ public class MainController {
   private void handleKeyEnter(KeyEvent event) {
     if (itemGridView.getSelected().size() == 1) {
       Item item = itemGridView.getSelected().get(0);
-      if (item instanceof GroupItem) {
-        explorerOpenGroup((GroupItem) item);
-        event.consume();
-      } else if (itemGridView.getSelected().get(0) instanceof MediaItem) {
-        try {
-          Desktop.getDesktop().open(((MediaItem) item).getFile());
-        } catch (IOException e) {
-          LOGGER.log(Level.SEVERE,
-              "Failed to open file with system default: " + ((MediaItem) item).getFile(), e);
-        }
-        event.consume();
-      }
+      Items.get(ItemOpener.class, item).ifPresent(itemOpener -> itemOpener.open(item, this));
+      event.consume();
     }
   }
 
@@ -1663,9 +1650,9 @@ public class MainController {
   }
 
   private void handleKeyR(KeyEvent event) {
-    if (itemGridView.getSelected().size() == 1 &&
-        itemGridView.getSelected().get(0) instanceof GroupItem) {
-      openGroupRenameDialog((GroupItem) itemGridView.getSelected().get(0));
+    if (itemGridView.getSelected().size() == 1) {
+      Item item = itemGridView.getSelected().get(0);
+      Items.get(ItemRenamer.class, item).ifPresent(itemRenamer -> itemRenamer.rename(item, this));
     }
     event.consume();
   }
