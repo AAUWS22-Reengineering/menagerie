@@ -24,8 +24,12 @@
 
 package menagerie.model.search.rules;
 
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.search.ItemSearch;
+
+import java.util.Optional;
 
 /**
  * Rule that searches for missing attributes.
@@ -50,15 +54,12 @@ public class MissingRule extends SearchRule {
 
   @Override
   protected boolean checkRule(Item item) {
-    if (item instanceof MediaItem) {
-      return switch (type) {
-        case MD5 -> ((MediaItem) item).getMD5() == null;
-        case FILE -> ((MediaItem) item).getFile() == null || !((MediaItem) item).getFile().exists();
-        case HISTOGRAM -> ((MediaItem) item).getHistogram() == null;
-      };
-    } else {
-      return false;
-    }
+    Optional<ItemSearch> is = Items.get(ItemSearch.class, item);
+    return is.map(itemSearch -> switch (type) {
+      case MD5 -> itemSearch.hasMissingMD5(item);
+      case FILE -> itemSearch.hasMissingFile(item);
+      case HISTOGRAM -> itemSearch.hasMissingHistogram(item);
+    }).orElse(false);
   }
 
   @Override

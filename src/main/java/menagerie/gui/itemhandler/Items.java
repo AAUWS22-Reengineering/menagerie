@@ -26,6 +26,9 @@ import menagerie.gui.itemhandler.rename.ItemRenamer;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.search.GroupItemSearch;
+import menagerie.model.menagerie.itemhandler.search.ItemSearch;
+import menagerie.model.menagerie.itemhandler.search.MediaItemSearch;
 import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.model.menagerie.itemhandler.similarity.MediaItemSimilarity;
 
@@ -62,6 +65,8 @@ public class Items {
     register(ItemFileHandler.class, MediaItem.class, new MediaItemFileHandler());
     register(ItemGroupHandler.class, GroupItem.class, new GroupItemGroupHandler());
     register(ItemGroupHandler.class, MediaItem.class, new MediaItemGroupHandler());
+    register(ItemSearch.class, GroupItem.class, new GroupItemSearch());
+    register(ItemSearch.class, MediaItem.class, new MediaItemSearch());
   }
 
   private Items() {

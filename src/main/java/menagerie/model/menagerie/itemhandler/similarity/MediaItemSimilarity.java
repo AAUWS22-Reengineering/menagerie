@@ -24,13 +24,13 @@ public class MediaItemSimilarity implements ItemSimilarity {
    * Only supports comparison to other MediaItem (i.e. target has to be of type MediaItem too)
    */
   @Override
-  public boolean isSimilarTo(Item base, Item target, double confidenceSquare) {
+  public boolean isSimilarTo(Item base, Item target, double confidenceSquare, double confidence) {
     MediaItem mediaItemBase = (MediaItem) base;
     if (target instanceof MediaItem mediaItemTarget) {
       double similarity = mediaItemBase.getSimilarityTo(mediaItemTarget);
       if (similarity >= confidenceSquare ||
-          ((mediaItemBase.getHistogram().isColorful() || mediaItemTarget.getHistogram().isColorful()) &&
-              similarity > MediaItem.MIN_CONFIDENCE)) {
+          (similarity >= confidence && mediaItemBase.getHistogram().isColorful() &&
+              mediaItemTarget.getHistogram().isColorful())) {
         return true;
       }
     }
@@ -45,5 +45,14 @@ public class MediaItemSimilarity implements ItemSimilarity {
           mediaBase.getMD5().equalsIgnoreCase(mediaTarget.getMD5());
     }
     return false;
+  }
+
+  @Override
+  public double getSimilarity(Item base, Item target) {
+    MediaItem mediaItemBase = (MediaItem) base;
+    if (target instanceof MediaItem mediaItemTarget) {
+      return mediaItemBase.getSimilarityTo(mediaItemTarget);
+    }
+    return 0;
   }
 }

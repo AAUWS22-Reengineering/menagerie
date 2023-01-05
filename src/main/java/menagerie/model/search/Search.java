@@ -26,13 +26,16 @@ package menagerie.model.search;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.search.rules.SearchRule;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Data class that contains results of a search filtered and sorted by the given rules.
@@ -146,7 +149,8 @@ public class Search {
       return false;
     }
 
-    if (item instanceof MediaItem && ((MediaItem) item).isInGroup() && !showGrouped) {
+    Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+    if (itemProps.isEmpty() || (itemProps.get().isInGroup(item) && !showGrouped)) {
       return false;
     } else {
       for (SearchRule rule : rules) {

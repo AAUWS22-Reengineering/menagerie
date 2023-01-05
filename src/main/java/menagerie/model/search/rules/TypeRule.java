@@ -24,9 +24,10 @@
 
 package menagerie.model.search.rules;
 
+import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.search.ItemSearch;
 
 /**
  * Rule that checks the type of item.
@@ -50,18 +51,19 @@ public class TypeRule extends SearchRule {
 
   @Override
   public boolean checkRule(Item item) {
-    if (item instanceof MediaItem) {
+    return Items.get(ItemSearch.class, item).map(itemSearch -> {
       if (type == Type.MEDIA) {
-        return true;
+        return itemSearch.isMedia(item);
       } else if (type == Type.VIDEO) {
-        return ((MediaItem) item).isVideo();
+        return itemSearch.isVideo(item);
       } else if (type == Type.IMAGE) {
-        return ((MediaItem) item).isImage();
+        return itemSearch.isImage(item);
+      } else if (item instanceof GroupItem) {
+        return itemSearch.isGroup(item);
+      } else {
+        return false;
       }
-    } else if (item instanceof GroupItem) {
-      return type == Type.GROUP;
-    }
-    return false;
+    }).orElse(false);
   }
 
   @Override
