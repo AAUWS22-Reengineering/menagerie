@@ -1,8 +1,11 @@
 package menagerie.gui.itemhandler;
 
-import menagerie.gui.itemhandler.properties.GroupItemProperties;
-import menagerie.gui.itemhandler.properties.ItemProperties;
-import menagerie.gui.itemhandler.properties.MediaItemProperties;
+import menagerie.gui.itemhandler.gridcell.GroupItemCellHandler;
+import menagerie.gui.itemhandler.gridcell.ItemCellHandler;
+import menagerie.gui.itemhandler.gridcell.MediaItemCellHandler;
+import menagerie.model.menagerie.itemhandler.properties.GroupItemProperties;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+import menagerie.model.menagerie.itemhandler.properties.MediaItemProperties;
 import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
 import menagerie.gui.itemhandler.gridviewselector.MediaItemGridViewSelector;
 import menagerie.gui.itemhandler.infoboxrenderer.ItemInfoBoxRenderer;
@@ -17,6 +20,8 @@ import menagerie.gui.itemhandler.rename.ItemRenamer;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
+import menagerie.model.menagerie.itemhandler.similarity.MediaItemSimilarity;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -44,6 +49,9 @@ public class Items {
     register(ItemProperties.class, MediaItem.class, new MediaItemProperties());
     register(ItemPreview.class, MediaItem.class, new MediaItemPreview());
     register(ItemRenamer.class, GroupItem.class, new GroupItemRenamer());
+    register(ItemCellHandler.class, GroupItem.class, new GroupItemCellHandler());
+    register(ItemCellHandler.class, MediaItem.class, new MediaItemCellHandler());
+    register(ItemSimilarity.class, MediaItem.class, new MediaItemSimilarity());
   }
 
   private Items() {

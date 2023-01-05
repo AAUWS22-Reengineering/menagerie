@@ -1,8 +1,10 @@
-package menagerie.gui.itemhandler.properties;
+package menagerie.model.menagerie.itemhandler.properties;
 
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
+
+import java.io.File;
 
 public class MediaItemProperties implements ItemProperties {
 
@@ -24,5 +26,15 @@ public class MediaItemProperties implements ItemProperties {
   @Override
   public GroupItem getParentGroup(Item item) {
     return ((MediaItem) item).getGroup();
+  }
+
+  @Override
+  public boolean isFileBased(Item item) {
+    return true;
+  }
+
+  @Override
+  public File getFile(Item item) {
+    return ((MediaItem) item).getFile();
   }
 }

@@ -1,7 +1,9 @@
-package menagerie.gui.itemhandler.properties;
+package menagerie.model.menagerie.itemhandler.properties;
 
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
+
+import java.io.File;
 
 public class GroupItemProperties implements ItemProperties {
 
@@ -22,6 +24,16 @@ public class GroupItemProperties implements ItemProperties {
 
   @Override
   public GroupItem getParentGroup(Item item) {
+    return null;
+  }
+
+  @Override
+  public boolean isFileBased(Item item) {
+    return false;
+  }
+
+  @Override
+  public File getFile(Item item) {
     return null;
   }
 }
