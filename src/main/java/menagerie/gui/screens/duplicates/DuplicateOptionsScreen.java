@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -47,6 +48,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import jcuda.CudaException;
 import menagerie.gui.Main;
+import menagerie.gui.itemhandler.Items;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.gui.screens.dialogs.AlertDialogScreen;
@@ -56,6 +58,8 @@ import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.CancellableThread;
 
@@ -158,11 +162,11 @@ public class DuplicateOptionsScreen extends Screen {
       if (!newValue) {
         try {
           double value = Double.parseDouble(confidenceTextField.getText());
-            if (value < MediaItem.MIN_CONFIDENCE) {
-                confidenceTextField.setText("" + MediaItem.MIN_CONFIDENCE);
-            } else if (value > MediaItem.MAX_CONFIDENCE) {
-                confidenceTextField.setText("" + MediaItem.MAX_CONFIDENCE);
-            }
+          if (value < MediaItem.MIN_CONFIDENCE) {
+            confidenceTextField.setText("" + MediaItem.MIN_CONFIDENCE);
+          } else if (value > MediaItem.MAX_CONFIDENCE) {
+            confidenceTextField.setText("" + MediaItem.MAX_CONFIDENCE);
+          }
         } catch (NumberFormatException e) {
           confidenceTextField.setText("" + DEFAULT_CONFIDENCE);
         }
@@ -170,7 +174,7 @@ public class DuplicateOptionsScreen extends Screen {
     });
     confidenceTextField.setTooltip(new Tooltip(
         "Similarity confidence: (" + MediaItem.MIN_CONFIDENCE + "-" + MediaItem.MAX_CONFIDENCE +
-        ")"));
+            ")"));
     h = new HBox(5, new Label("Confidence:"), confidenceTextField);
     h.setAlignment(Pos.CENTER_LEFT);
     contents.getChildren().add(h);
@@ -212,10 +216,10 @@ public class DuplicateOptionsScreen extends Screen {
    */
   public void open(ScreenPane manager, Menagerie menagerie, List<Item> selected,
                    List<Item> searched, List<Item> all) {
-      if (manager == null || menagerie == null || selected == null || searched == null ||
-          all == null) {
-          return;
-      }
+    if (manager == null || menagerie == null || selected == null || searched == null ||
+        all == null) {
+      return;
+    }
     this.menagerie = menagerie;
     this.selected = selected;
     this.searched = searched;
@@ -274,30 +278,29 @@ public class DuplicateOptionsScreen extends Screen {
   private void compareButtonOnAction() {
     saveSettings();
 
-    List<Item> compare = all;
-    if (compareChoiceBox.getValue() == Scope.SELECTED) {
-      compare = selected;
-    } else if (compareChoiceBox.getValue() == Scope.SEARCHED) {
-      compare = searched;
-    }
-    compare = getComparableItems(compare, includeGroupElementsCheckBox.isSelected());
-    compare.removeIf(item -> (item instanceof GroupItem) ||
-                             (item instanceof MediaItem && ((MediaItem) item).hasNoSimilar()));
-    List<Item> to = all;
-    if (toChoiceBox.getValue() == Scope.SELECTED) {
-      to = selected;
-    } else if (toChoiceBox.getValue() == Scope.SEARCHED) {
-      to = searched;
-    }
-    to = getComparableItems(to, includeGroupElementsCheckBox.isSelected());
-    to.removeIf(item -> (item instanceof GroupItem) ||
-                        (item instanceof MediaItem && ((MediaItem) item).hasNoSimilar()));
+    List<Item> compare = getFilteredItems(all, compareChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());
+    List<Item> to = getFilteredItems(all, toChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());;
 
     if (settings.cudaDuplicates.getValue()) {
       launchGPUDuplicateFinder(compare, to);
     } else {
       launchCPUDuplicateFinder(compare, to);
     }
+  }
+
+  private List<Item> getFilteredItems(List<Item> allItems, Scope scope, boolean includeGroupElements) {
+    List<Item> filteredItems = allItems;
+    if (scope == Scope.SELECTED) {
+      filteredItems = selected;
+    } else if (scope == Scope.SEARCHED) {
+      filteredItems = searched;
+    }
+    filteredItems = getComparableItems(filteredItems, includeGroupElements);
+    filteredItems.removeIf(item -> {
+      Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, item);
+      return itemSim.isEmpty() || itemSim.get().hasNoSimilar(item);
+    });
+    return filteredItems;
   }
 
   private void launchGPUDuplicateFinder(List<Item> compare, List<Item> to) {
@@ -378,11 +381,14 @@ public class DuplicateOptionsScreen extends Screen {
 
   private static List<Item> getComparableItems(List<Item> compare, boolean expandGroups) {
     compare = new ArrayList<>(compare);
-      if (expandGroups) {
-          expandGroupsInline(compare);
-      }
+    if (expandGroups) {
+      expandGroupsInline(compare);
+    }
 
-    compare.removeIf(item -> !(item instanceof MediaItem) || ((MediaItem) item).hasNoSimilar());
+    compare.removeIf(item -> {
+      Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, item);
+      return itemSim.isEmpty() || itemSim.get().hasNoSimilar(item);
+    });
     return compare;
   }
 
@@ -418,9 +424,11 @@ public class DuplicateOptionsScreen extends Screen {
    */
   private static void expandGroupsInline(List<Item> items) {
     for (int i = 0; i < items.size(); i++) {
-      if (items.get(i) instanceof GroupItem) {
-        GroupItem group = (GroupItem) items.remove(i);
-        items.addAll(i, group.getElements());
+      Item item = items.get(i);
+      Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+      if (itemProps.isPresent() && itemProps.get().isGroup(item)) {
+        items.remove(i);
+        items.addAll(i, itemProps.get().getItems(item));
       }
     }
   }

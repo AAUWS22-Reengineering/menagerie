@@ -4,6 +4,8 @@ import menagerie.gui.itemhandler.gridcell.GroupItemCellHandler;
 import menagerie.gui.itemhandler.gridcell.ItemCellHandler;
 import menagerie.gui.itemhandler.gridcell.MediaItemCellHandler;
 import menagerie.gui.itemhandler.preview.GroupItemPreview;
+import menagerie.model.menagerie.itemhandler.file.ItemFileHandler;
+import menagerie.model.menagerie.itemhandler.file.MediaItemFileHandler;
 import menagerie.model.menagerie.itemhandler.properties.GroupItemProperties;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.menagerie.itemhandler.properties.MediaItemProperties;
@@ -54,6 +56,7 @@ public class Items {
     register(ItemCellHandler.class, GroupItem.class, new GroupItemCellHandler());
     register(ItemCellHandler.class, MediaItem.class, new MediaItemCellHandler());
     register(ItemSimilarity.class, MediaItem.class, new MediaItemSimilarity());
+    register(ItemFileHandler.class, MediaItem.class, new MediaItemFileHandler());
   }
 
   private Items() {

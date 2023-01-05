@@ -5,4 +5,5 @@ import menagerie.model.menagerie.Item;
 
 public interface ItemOpener {
   void open(Item item, MainController controller);
+  void openInExplorer(Item item);
 }

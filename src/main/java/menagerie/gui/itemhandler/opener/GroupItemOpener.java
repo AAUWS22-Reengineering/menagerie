@@ -9,4 +9,9 @@ public class GroupItemOpener implements ItemOpener {
   public void open(Item item, MainController controller) {
     controller.explorerOpenGroup((GroupItem) item);
   }
+
+  @Override
+  public void openInExplorer(Item item) {
+    // not supported
+  }
 }

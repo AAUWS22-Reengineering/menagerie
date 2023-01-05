@@ -23,4 +23,14 @@ public class MediaItemOpener implements ItemOpener {
               ((MediaItem) item).getFile());
     }
   }
+
+  @Override
+  public void openInExplorer(Item item) {
+    try {
+      Runtime.getRuntime()
+          .exec("explorer.exe /select, " + ((MediaItem) item).getFile().getAbsolutePath());
+    } catch (IOException e) {
+      LOGGER.log(Level.SEVERE, "Error opening file in explorer", e);
+    }
+  }
 }

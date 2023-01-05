@@ -29,19 +29,20 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 
 public class FileMoveNode {
 
   private final File folder;
-  private final List<MediaItem> items;
+  private final List<Item> items;
   private final List<FileMoveNode> nodes;
   private final int depth;
   private FileMoveNode parent = null;
   private final BooleanProperty preserve = new SimpleBooleanProperty(false);
 
 
-  public FileMoveNode(File folder, List<MediaItem> items, List<FileMoveNode> nodes) {
+  public FileMoveNode(File folder, List<Item> items, List<FileMoveNode> nodes) {
     this.folder = folder;
     this.items = items;
     this.nodes = nodes;
@@ -64,7 +65,7 @@ public class FileMoveNode {
     return folder;
   }
 
-  public List<MediaItem> getItems() {
+  public List<Item> getItems() {
     return items;
   }
 
