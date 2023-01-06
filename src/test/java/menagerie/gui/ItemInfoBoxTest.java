@@ -23,7 +23,7 @@ public class ItemInfoBoxTest extends UITest {
 
     infoBox.setItem(m);
     // wait for rendering to be done
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
     assertEquals(imgWidth + "x" + imgHeight, infoBox.getResolutionLabel().getText());
     assertNotEquals(TestItemInfoBox.DEFAULT_FILESIZE_TEXT, infoBox.getFileSizeLabel().getText());
   }
@@ -35,7 +35,7 @@ public class ItemInfoBoxTest extends UITest {
 
     infoBox.setItem(g);
     // wait for rendering to be done
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
     assertEquals(TestItemInfoBox.DEFAULT_RESOLUTION_TEXT, infoBox.getResolutionLabel().getText());
     assertEquals(TestItemInfoBox.DEFAULT_FILESIZE_TEXT, infoBox.getFileSizeLabel().getText());
   }

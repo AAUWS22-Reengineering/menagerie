@@ -29,7 +29,7 @@ public class GridViewUtilTest extends UITest {
     ItemGridView itemGridView = getItemGridViewMock();
     // force thumbnail creation
     m.getThumbnail().want();
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
 
     Dragboard dbMock = mock(Dragboard.class);
     GridViewUtil.doDragAndDrop(dbMock, itemGridView);

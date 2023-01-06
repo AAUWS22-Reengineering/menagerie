@@ -23,7 +23,7 @@ public class ItemGridCellTest extends UITest {
 
     gridCell.updateItem(m, false);
     // wait for rendering to be done
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
 
     assertEquals(file.getAbsolutePath(), gridCell.getTooltip().getText());
   }
@@ -38,7 +38,7 @@ public class ItemGridCellTest extends UITest {
 
     gridCell.updateItem(g, false);
     // wait for rendering to be done
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
 
     assertEquals(title, gridCell.getTooltip().getText());
     assertEquals(String.valueOf(elementCount), gridCell.getBottomRightLabel().getText());
@@ -57,7 +57,7 @@ public class ItemGridCellTest extends UITest {
     // replace with empty
     gridCell.updateItem(null, true);
     // wait for rendering to be done
-    Thread.sleep(100);
+    Thread.sleep(UITest.SLEEP_TIME);
 
     // verify that listeners were successfully removed
     verify(titlePropMock, times(1)).removeListener(gridCell.getGroupTitleListener());

@@ -7,6 +7,8 @@ import org.testfx.framework.junit5.ApplicationExtension;
 @ExtendWith(ApplicationExtension.class)
 public class UITest {
 
+  public static final int SLEEP_TIME = 250;
+
   @BeforeAll
   static void setupHeadless() {
         /* Set "headless" property to true to enable headless testing (using -Dheadless=true)
