@@ -1,5 +1,8 @@
 package menagerie.model.menagerie;
 
+import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableList;
+
 public class TestGroupItem extends GroupItem {
   /**
    * ID uniqueness is not verified by this.
@@ -15,5 +18,9 @@ public class TestGroupItem extends GroupItem {
 
   public void setMenagerie(Menagerie m) {
     this.menagerie = m;
+  }
+
+  public void setTitleProperty(StringProperty titleProperty) {
+    this.title = titleProperty;
   }
 }

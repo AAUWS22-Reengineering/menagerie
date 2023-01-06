@@ -7,5 +7,5 @@ import menagerie.model.menagerie.Item;
 
 public interface ItemGridViewSelector {
   void select(Item item, ItemGridView itemGridView, MouseEvent event);
-  boolean doDragAndDrop(Item item, Dragboard db, ItemGridView itemGridView);
+  boolean doDragAndDrop(Item item, Dragboard db);
 }

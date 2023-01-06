@@ -1,14 +1,38 @@
 package menagerie.model.menagerie;
 
+import java.io.File;
+
 import static org.mockito.Mockito.mock;
 
 public class ItemTestUtils {
+
+  public static final File WHITE_IMAGE_FILE = new File("target/test-classes/white.png");
+  public static final File BLACK_IMAGE_FILE = new File("target/test-classes/black.png");
+  public static final File GREY_IMAGE_FILE = new File("target/test-classes/grey.png");
+  public static final File GREY_DUPE_IMAGE_FILE = new File("target/test-classes/grey_duplicate.png");
+
   private ItemTestUtils() {
   }
 
-  public static GroupItem getGroupWithNElements(int elementCount) {
+  public static GroupItem getGroup() {
+    return getGroupWithNElements(0);
+  }
+
+  public static GroupItem getGroup(String title) {
+    return getGroupWithNElements(title,0);
+  }
+
+  public static GroupItem getGroup(MediaItem... items) {
+    GroupItem g = getGroup();
+    for (MediaItem m : items) {
+      g.addItem(m);
+    }
+    return g;
+  }
+
+  public static GroupItem getGroupWithNElements(String title, int elementCount) {
     Menagerie menagerieMock = mock(Menagerie.class);
-    TestGroupItem g = new TestGroupItem(null, 1, 0, "title");
+    TestGroupItem g = new TestGroupItem(null, 1, 0, title);
     g.setMenagerie(menagerieMock);
 
     for (int i=0; i<elementCount; i++) {
@@ -17,6 +41,10 @@ public class ItemTestUtils {
       g.addItem(m);
     }
     return g;
+  }
+
+  public static GroupItem getGroupWithNElements(int elementCount) {
+    return getGroupWithNElements("title", elementCount);
   }
 
   public static MediaItem getMediaItem() {
