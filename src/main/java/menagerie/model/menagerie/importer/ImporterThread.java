@@ -24,11 +24,9 @@
 
 package menagerie.model.menagerie.importer;
 
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Logger;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.listeners.ObjectListener;
@@ -36,69 +34,44 @@ import menagerie.util.listeners.ObjectListener;
 /**
  * A thread that cleanly serializes Menagerie imports as jobs with additional features.
  */
-public class ImporterThread extends Thread {
+public class ImporterThread implements Runnable {
 
-  private static final Logger LOGGER = Logger.getLogger(ImporterThread.class.getName());
-
-  private volatile boolean running = false;
   private volatile boolean paused = false;
 
-  private final Menagerie menagerie;
-  private final MenagerieSettings settings;
-  private final Queue<ImportJob> queue = new ConcurrentLinkedQueue<>();
+  private final ImportJobQueue queue;
 
-  private final Set<ObjectListener<ImportJob>> importerListeners = new HashSet<>();
+  private final Set<ObjectListener<ImportJob>> importerListeners =
+      Collections.synchronizedSet(new HashSet<>());
 
 
   public ImporterThread(Menagerie menagerie, MenagerieSettings settings) {
-    super("Menagerie Importer Thread");
-
-    this.menagerie = menagerie;
-    this.settings = settings;
+    this.queue = new ImportJobQueue(job -> job.runJob(menagerie, settings));
   }
 
   @Override
   public void run() {
-    running = true;
-    while (running) {
+    while (true) {
 
       while (paused) {
-        if (!running) {
-          return;
-        }
-        synchronized (this) {
-          try {
-            wait();
-          } catch (InterruptedException ignore) {
-          }
-        }
+        sleep();
       }
 
       if (queue.isEmpty()) {
-        synchronized (this) {
-          try {
-            wait();
-          } catch (InterruptedException ignore) {
-          }
-        }
+        sleep();
         continue;
       }
 
-      startNextImportJob();
+      queue.startNextImportJob();
     }
   }
 
-  private void startNextImportJob() {
-    LOGGER.info(() -> "Import queue size: " + queue.size());
-    ImportJob job = queue.remove();
-
-    if (job.getUrl() != null) {
-      LOGGER.info(() -> "Starting web import: " + job.getUrl());
-    } else {
-      LOGGER.info(() -> "Starting local import: " + job.getFile());
+  private void sleep() {
+    synchronized (this) {
+      try {
+        wait();
+      } catch (InterruptedException ignore) {
+      }
     }
-    job.runJob(menagerie, settings);
-    LOGGER.info(() -> "Finished import: " + job.getItem().getId());
   }
 
   /**
@@ -110,9 +83,7 @@ public class ImporterThread extends Thread {
     job.setImporter(this);
     queue.add(job);
     notify();
-    synchronized (importerListeners) {
-      importerListeners.forEach(listener -> listener.pass(job));
-    }
+    importerListeners.forEach(listener -> listener.pass(job));
   }
 
   /**
@@ -128,7 +99,7 @@ public class ImporterThread extends Thread {
   /**
    * @return True if this thread is paused.
    */
-  public boolean isPaused() {
+  public synchronized boolean isPaused() {
     return paused;
   }
 
@@ -136,9 +107,7 @@ public class ImporterThread extends Thread {
    * @param listener Listener that listens for jobs being added.
    */
   public void addImporterListener(ObjectListener<ImportJob> listener) {
-    synchronized (importerListeners) {
-      importerListeners.add(listener);
-    }
+    importerListeners.add(listener);
   }
 
   /**
@@ -146,7 +115,7 @@ public class ImporterThread extends Thread {
    *
    * @param job Job to remove.
    */
-  public void cancel(ImportJob job) {
+  void cancel(ImportJob job) {
     queue.remove(job);
   }
 
