@@ -542,8 +542,9 @@ public class MainController {
   private void initImporterThread() {
     LOGGER.info("Starting importer thread");
     importer = new ImporterThread(menagerie, settings);
-    importer.setDaemon(true);
-    importer.start();
+    final var t = new Thread(importer);
+    t.setDaemon(true);
+    t.start();
 
     settings.autoImportGroup.enabledProperty()
         .addListener((observable, oldValue, newValue) -> Platform.runLater(() -> {
