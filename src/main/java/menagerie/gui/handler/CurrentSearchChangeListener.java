@@ -4,13 +4,9 @@ import java.util.function.Supplier;
 import javafx.collections.ListChangeListener;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.model.menagerie.Item;
+import menagerie.util.Action;
 
 public class CurrentSearchChangeListener implements ListChangeListener<Item> {
-
-  @FunctionalInterface
-  public interface Action {
-    void execute();
-  }
 
   private final ItemGridView itemGridView;
   private final Supplier<Item> currentlyPreviewing;

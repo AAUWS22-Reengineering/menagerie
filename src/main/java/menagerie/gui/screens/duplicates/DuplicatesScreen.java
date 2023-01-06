@@ -35,11 +35,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -52,8 +49,6 @@ import menagerie.gui.ItemInfoBox;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
-import menagerie.gui.taglist.OtherMissingTagListCell;
-import menagerie.gui.taglist.TagListCell;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
@@ -81,17 +76,11 @@ public class DuplicatesScreen extends Screen {
   private final BooleanProperty deleteFile = new SimpleBooleanProperty(true);
   private final BooleanProperty preload = new SimpleBooleanProperty(true);
 
+  private final PairPreview pairPreview = new PairPreview(this::previewPair);
+
   private ObjectListener<Item> selectListener = null;
-  private final ListChangeListener<Tag> leftTagListener = c -> {
-    while (c.next()) {
-      repopulateTagLists();
-    }
-  };
-  private final ListChangeListener<Tag> rightTagListener = c -> {
-    while (c.next()) {
-      repopulateTagLists();
-    }
-  };
+  private final ListChangeListener<Tag> tagListener = new TagListChangeListener(
+      leftTagList, rightTagList, () -> currentPair);
 
   public DuplicatesScreen() {
     registerKeyEvents();
@@ -111,65 +100,19 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void registerCellFactories() {
-    leftTagList.setCellFactory(param -> {
-      TagListCell c = new OtherMissingTagListCell(() -> currentPair.getObject2());
-      MenuItem addToOther = new MenuItem("Add to other");
-      addToOther.setOnAction(event -> currentPair.getObject2().addTag(c.getItem()));
-      MenuItem removeTag = new MenuItem("Remove tag");
-      removeTag.setOnAction(event -> currentPair.getObject1().removeTag(c.getItem()));
-      ContextMenu cm = new ContextMenu(addToOther, new SeparatorMenuItem(), removeTag);
-      c.setOnContextMenuRequested(
-          event -> cm.show(c.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
-      return c;
-    });
-    rightTagList.setCellFactory(param -> {
-      TagListCell c = new OtherMissingTagListCell(() -> currentPair.getObject1());
-      MenuItem addToOther = new MenuItem("Add to other");
-      addToOther.setOnAction(event -> currentPair.getObject1().addTag(c.getItem()));
-      MenuItem removeTag = new MenuItem("Remove tag");
-      removeTag.setOnAction(event -> currentPair.getObject2().removeTag(c.getItem()));
-      ContextMenu cm = new ContextMenu(addToOther, new SeparatorMenuItem(), removeTag);
-      c.setOnContextMenuRequested(
-          event -> cm.show(c.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
-      return c;
-    });
+    leftTagList.setCellFactory(new DuplicatesScreenLeftCellFactory<>(this::getCurrentPair));
+    rightTagList.setCellFactory(new DuplicatesScreenRightCellFactory<>(this::getCurrentPair));
+  }
+
+  private SimilarPair<MediaItem> getCurrentPair() {
+    return currentPair;
   }
 
   private void registerContextMenuRequestedEvents() {
-    leftMediaView.setOnContextMenuRequested(event -> {
-      MenuItem select = new MenuItem("Select in explorer");
-      MenuItem combineTags = new MenuItem("Add tags to other -->");
-      ContextMenu cm = new ContextMenu(select, combineTags);
-      select.setOnAction(event1 -> {
-        if (selectListener != null) {
-          selectListener.pass(currentPair.getObject1());
-        }
-        cm.hide();
-        close();
-      });
-      combineTags.setOnAction(event1 -> {
-        currentPair.getObject1().getTags().forEach(tag -> currentPair.getObject2().addTag(tag));
-        cm.hide();
-      });
-      cm.show(leftMediaView.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    });
-    rightMediaView.setOnContextMenuRequested(event -> {
-      MenuItem select = new MenuItem("Select in explorer");
-      MenuItem combineTags = new MenuItem("<-- Add tags to other");
-      ContextMenu cm = new ContextMenu(select, combineTags);
-      select.setOnAction(event1 -> {
-        if (selectListener != null) {
-          selectListener.pass(currentPair.getObject2());
-        }
-        cm.hide();
-        close();
-      });
-      combineTags.setOnAction(event1 -> {
-        currentPair.getObject2().getTags().forEach(tag -> currentPair.getObject1().addTag(tag));
-        cm.hide();
-      });
-      cm.show(rightMediaView.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    });
+    leftMediaView.setOnContextMenuRequested(new LeftContextMenuListener(leftMediaView,
+        () -> selectListener, () -> currentPair, this::close));
+    rightMediaView.setOnContextMenuRequested(new RightContextMenuListener(rightMediaView,
+        () -> selectListener, () -> currentPair, this::close));
   }
 
   private void constructFirstElement(VBox bottom) {
@@ -189,11 +132,11 @@ public class DuplicatesScreen extends Screen {
 
   private void constructSecondElement(VBox bottom) {
     Button prevPairButton = new Button("<-");
-    prevPairButton.setOnAction(event -> previewPrev());
+    prevPairButton.setOnAction(event -> pairPreview.previewPrev(pairs, currentPair));
     Button closeButton = new Button("Close");
     closeButton.setOnAction(event -> close());
     Button nextPairButton = new Button("->");
-    nextPairButton.setOnAction(event -> previewNext());
+    nextPairButton.setOnAction(event -> pairPreview.previewNext(pairs, currentPair));
     registerAddListenerToCheckbox();
     HBox hb = new HBox(5, prevPairButton, closeButton, nextPairButton, nonDupeCheckBox);
     hb.setAlignment(Pos.CENTER);
@@ -250,34 +193,31 @@ public class DuplicatesScreen extends Screen {
   private void configureCenterElements() {
     leftTagList.setPrefWidth(200);
     rightTagList.setPrefWidth(200);
-    leftInfoBox.setAlignment(Pos.BOTTOM_LEFT);
-    leftInfoBox.setMaxHeight(USE_PREF_SIZE);
-    leftInfoBox.setOpacity(0.75);
-    BorderPane.setAlignment(leftInfoBox, Pos.BOTTOM_LEFT);
-    rightInfoBox.setAlignment(Pos.BOTTOM_RIGHT);
-    rightInfoBox.setMaxHeight(USE_PREF_SIZE);
-    rightInfoBox.setOpacity(0.75);
-    BorderPane.setAlignment(rightInfoBox, Pos.BOTTOM_RIGHT);
+    configureInfoBox(leftInfoBox, Pos.BOTTOM_LEFT);
+    configureInfoBox(rightInfoBox, Pos.BOTTOM_RIGHT);
+  }
+
+  private void configureInfoBox(ItemInfoBox infoBox, Pos position) {
+    infoBox.setAlignment(position);
+    infoBox.setMaxHeight(USE_PREF_SIZE);
+    infoBox.setOpacity(0.75);
+    BorderPane.setAlignment(infoBox, position);
   }
 
   private void registerKeyEvents() {
     addEventHandler(KeyEvent.KEY_PRESSED, event -> {
       if (event.getCode() == KeyCode.ESCAPE) {
         close();
-        event.consume();
       } else if (event.getCode() == KeyCode.LEFT) {
-        previewPrev();
-        event.consume();
+        pairPreview.previewPrev(pairs, currentPair);
       } else if (event.getCode() == KeyCode.RIGHT) {
-        previewNext();
-        event.consume();
+        pairPreview.previewNext(pairs, currentPair);
       } else if (event.getCode() == KeyCode.END) {
         preview(pairs.get(pairs.size() - 1));
-        event.consume();
       } else if (event.getCode() == KeyCode.HOME) {
         preview(pairs.get(0));
-        event.consume();
       }
+      event.consume();
     });
   }
 
@@ -311,56 +251,14 @@ public class DuplicatesScreen extends Screen {
   }
 
   /**
-   * Displays the next pair, if there is one.
-   */
-  private void previewNext() {
-    if (pairs == null || pairs.isEmpty()) {
-      return;
-    }
-
-    if (currentPair == null) {
-      preview(pairs.get(0));
-    } else {
-      int i = pairs.indexOf(currentPair);
-      if (i >= 0) {
-        if (i + 1 < pairs.size()) {
-          preview(pairs.get(i + 1));
-        }
-      } else {
-        preview(pairs.get(0));
-      }
-    }
-  }
-
-  /**
-   * Displays the previous pair, if there is one.
-   */
-  private void previewPrev() {
-    if (pairs == null || pairs.isEmpty()) {
-      return;
-    }
-
-    if (currentPair == null) {
-      preview(pairs.get(0));
-    } else {
-      int i = pairs.indexOf(currentPair);
-      if (i > 0) {
-        preview(pairs.get(i - 1));
-      } else {
-        preview(pairs.get(0));
-      }
-    }
-  }
-
-  /**
    * Displays a pair.
    *
    * @param pair Pair to display.
    */
   private void preview(SimilarPair<MediaItem> pair) {
     if (currentPair != null) {
-      currentPair.getObject1().getTags().removeListener(leftTagListener);
-      currentPair.getObject2().getTags().removeListener(rightTagListener);
+      currentPair.getObject1().getTags().removeListener(tagListener);
+      currentPair.getObject2().getTags().removeListener(tagListener);
     }
     currentPair = pair;
 
@@ -391,11 +289,11 @@ public class DuplicatesScreen extends Screen {
 
     leftTagList.getItems().addAll(pair.getObject1().getTags());
     leftTagList.getItems().sort(Comparator.comparing(Tag::getName));
-    currentPair.getObject1().getTags().addListener(leftTagListener);
+    currentPair.getObject1().getTags().addListener(tagListener);
 
     rightTagList.getItems().addAll(pair.getObject2().getTags());
     rightTagList.getItems().sort(Comparator.comparing(Tag::getName));
-    currentPair.getObject2().getTags().addListener(rightTagListener);
+    currentPair.getObject2().getTags().addListener(tagListener);
 
     leftInfoBox.setItem(pair.getObject1());
     rightInfoBox.setItem(pair.getObject2());
@@ -452,20 +350,6 @@ public class DuplicatesScreen extends Screen {
       close();
     } else {
       preview(pairs.get(index));
-    }
-  }
-
-  private void repopulateTagLists() {
-    leftTagList.getItems().clear();
-    if (currentPair != null) {
-      leftTagList.getItems().addAll(currentPair.getObject1().getTags());
-      leftTagList.getItems().sort(Comparator.comparing(Tag::getName));
-    }
-
-    rightTagList.getItems().clear();
-    if (currentPair != null) {
-      rightTagList.getItems().addAll(currentPair.getObject2().getTags());
-      rightTagList.getItems().sort(Comparator.comparing(Tag::getName));
     }
   }
 
