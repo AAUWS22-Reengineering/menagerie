@@ -8,6 +8,10 @@ import menagerie.model.menagerie.ItemTestUtils;
 import menagerie.model.menagerie.MediaItem;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
@@ -35,5 +39,14 @@ public class GridViewUtilTest extends UITest {
     GridViewUtil.doDragAndDrop(dbMock, itemGridView);
 
     verify(dbMock, times(1)).setDragView(m.getThumbnail().getImage());
+  }
+
+  @Test
+  void testGetSelectedFiles() throws InterruptedException {
+    ItemGridView itemGridView = getItemGridViewMock();
+
+    List<File> selectedFiles = GridViewUtil.getSelectedFiles(itemGridView);
+    assertEquals(1, selectedFiles.size());
+    assertEquals(m.getFile(), selectedFiles.get(0));
   }
 }
