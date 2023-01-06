@@ -25,7 +25,7 @@ public class GridViewUtilTest extends UITest {
   }
 
   @Test
-  void testUpdateMediaItem() throws InterruptedException {
+  void testDragAndDrop() throws InterruptedException {
     ItemGridView itemGridView = getItemGridViewMock();
     // force thumbnail creation
     m.getThumbnail().want();

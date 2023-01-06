@@ -57,7 +57,7 @@ import menagerie.util.listeners.PokeListener;
 
 public class SlideshowScreen extends Screen {
 
-  private final DynamicMediaView mediaView = new DynamicMediaView();
+  protected final DynamicMediaView mediaView = new DynamicMediaView();
   private final ItemInfoBox infoBox = new ItemInfoBox();
   private final Label totalLabel = new Label("0");
   private final TextField indexTextField = new TextField("/0");
@@ -143,7 +143,7 @@ public class SlideshowScreen extends Screen {
     });
   }
 
-  private Button getRightButton() {
+  protected Button getRightButton() {
     Button right = new Button("->");
     right.setOnAction(event -> previewNext());
     return right;

@@ -18,6 +18,14 @@ public class ItemTestUtils {
     return getGroupWithNElements(0);
   }
 
+  public static GroupItem getGroup(MediaItem... items) {
+    GroupItem g = getGroup();
+    for (MediaItem m : items) {
+      g.addItem(m);
+    }
+    return g;
+  }
+
   public static GroupItem getGroupWithNElements(int elementCount) {
     Menagerie menagerieMock = mock(Menagerie.class);
     TestGroupItem g = new TestGroupItem(null, 1, 0, "title");
