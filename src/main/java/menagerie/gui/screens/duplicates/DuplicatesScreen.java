@@ -26,7 +26,6 @@ package menagerie.gui.screens.duplicates;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -36,17 +35,14 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import menagerie.gui.ItemInfoBox;
-import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.model.SimilarPair;
@@ -58,12 +54,6 @@ import menagerie.util.listeners.ObjectListener;
 
 public class DuplicatesScreen extends Screen {
 
-  private final DynamicMediaView leftMediaView = new DynamicMediaView();
-  private final DynamicMediaView rightMediaView = new DynamicMediaView();
-  private final ListView<Tag> leftTagList = new ListView<>();
-  private final ListView<Tag> rightTagList = new ListView<>();
-  private final ItemInfoBox leftInfoBox = new ItemInfoBox();
-  private final ItemInfoBox rightInfoBox = new ItemInfoBox();
   private final CheckBox nonDupeCheckBox = new CheckBox("Not a duplicate");
 
   private final Label similarityLabel = new Label("N/A");
@@ -79,8 +69,11 @@ public class DuplicatesScreen extends Screen {
   private final PairPreview pairPreview = new PairPreview(this::previewPair);
 
   private ObjectListener<Item> selectListener = null;
+
+  private final DuplicatesScreenSide leftSide = new DuplicatesScreenSide();
+  private final DuplicatesScreenSide rightSide = new DuplicatesScreenSide();
   private final ListChangeListener<Tag> tagListener = new TagListChangeListener(
-      leftTagList, rightTagList, () -> currentPair);
+      leftSide.getTagList(), rightSide.getTagList(), () -> currentPair);
 
   public DuplicatesScreen() {
     registerKeyEvents();
@@ -100,8 +93,10 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void registerCellFactories() {
-    leftTagList.setCellFactory(new DuplicatesScreenLeftCellFactory<>(this::getCurrentPair));
-    rightTagList.setCellFactory(new DuplicatesScreenRightCellFactory<>(this::getCurrentPair));
+    leftSide.getTagList().setCellFactory(
+        new DuplicatesScreenLeftCellFactory<>(this::getCurrentPair));
+    rightSide.getTagList().setCellFactory(
+        new DuplicatesScreenRightCellFactory<>(this::getCurrentPair));
   }
 
   private SimilarPair<MediaItem> getCurrentPair() {
@@ -109,10 +104,10 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void registerContextMenuRequestedEvents() {
-    leftMediaView.setOnContextMenuRequested(new LeftContextMenuListener(leftMediaView,
-        () -> selectListener, () -> currentPair, this::close));
-    rightMediaView.setOnContextMenuRequested(new RightContextMenuListener(rightMediaView,
-        () -> selectListener, () -> currentPair, this::close));
+    leftSide.getTagList().setOnContextMenuRequested(new LeftContextMenuListener(
+        leftSide.getMediaView(), () -> selectListener, () -> currentPair, this::close));
+    rightSide.getTagList().setOnContextMenuRequested(new RightContextMenuListener(
+        rightSide.getMediaView(), () -> selectListener, () -> currentPair, this::close));
   }
 
   private void constructFirstElement(VBox bottom) {
@@ -173,15 +168,18 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void addSplitPane() {
-    BorderPane lbp = new BorderPane(null, null, leftTagList, null, leftInfoBox);
-    lbp.setPickOnBounds(false);
-    BorderPane rbp = new BorderPane(null, null, rightInfoBox, null, rightTagList);
-    rbp.setPickOnBounds(false);
-    SplitPane sp =
-        new SplitPane(new StackPane(leftMediaView, lbp), new StackPane(rightMediaView, rbp));
+
+    final BorderPane lbp = leftSide.buildBorderPane(leftSide.getTagList(), leftSide.getInfoBox());
+    final var lsp = leftSide.buildStackPane(lbp);
+
+    final BorderPane rbp =
+        rightSide.buildBorderPane(rightSide.getInfoBox(), rightSide.getTagList());
+    final var rsp = rightSide.buildStackPane(rbp);
+
+    SplitPane sp = new SplitPane(lsp, rsp);
     sp.setOnMouseEntered(event -> {
-      lbp.setRight(leftTagList);
-      rbp.setLeft(rightTagList);
+      lbp.setRight(leftSide.getTagList());
+      rbp.setLeft(rightSide.getTagList());
     });
     sp.setOnMouseExited(event -> {
       lbp.setRight(null);
@@ -191,17 +189,8 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void configureCenterElements() {
-    leftTagList.setPrefWidth(200);
-    rightTagList.setPrefWidth(200);
-    configureInfoBox(leftInfoBox, Pos.BOTTOM_LEFT);
-    configureInfoBox(rightInfoBox, Pos.BOTTOM_RIGHT);
-  }
-
-  private void configureInfoBox(ItemInfoBox infoBox, Pos position) {
-    infoBox.setAlignment(position);
-    infoBox.setMaxHeight(USE_PREF_SIZE);
-    infoBox.setOpacity(0.75);
-    BorderPane.setAlignment(infoBox, position);
+    leftSide.configureCenterElements(Pos.BOTTOM_LEFT);
+    rightSide.configureCenterElements(Pos.BOTTOM_RIGHT);
   }
 
   private void registerKeyEvents() {
@@ -241,12 +230,8 @@ public class DuplicatesScreen extends Screen {
 
   public void openWithOldPairs(ScreenPane manager, Menagerie menagerie) {
     this.menagerie = menagerie;
-
-    leftTagList.setDisable(false);
-    rightTagList.setDisable(false);
-    leftTagList.setOpacity(0.75);
-    rightTagList.setOpacity(0.75);
-
+    leftSide.styleTagList();
+    rightSide.styleTagList();
     manager.open(this);
   }
 
@@ -262,8 +247,8 @@ public class DuplicatesScreen extends Screen {
     }
     currentPair = pair;
 
-    leftTagList.getItems().clear();
-    rightTagList.getItems().clear();
+    leftSide.clearTagList();
+    rightSide.clearTagList();
 
     if (pair != null) {
       previewPair(pair);
@@ -273,30 +258,18 @@ public class DuplicatesScreen extends Screen {
   }
 
   private void resetPreview() {
-    leftMediaView.preview(null);
-    rightMediaView.preview(null);
-
-    leftInfoBox.setItem(null);
-    rightInfoBox.setItem(null);
-
+    leftSide.reset();
+    rightSide.reset();
     similarityLabel.setText("N/A");
     nonDupeCheckBox.setSelected(false);
   }
 
   private void previewPair(SimilarPair<MediaItem> pair) {
-    leftMediaView.preview(pair.getObject1());
-    rightMediaView.preview(pair.getObject2());
+    leftSide.preview(pair.getObject1());
+    rightSide.preview(pair.getObject2());
 
-    leftTagList.getItems().addAll(pair.getObject1().getTags());
-    leftTagList.getItems().sort(Comparator.comparing(Tag::getName));
     currentPair.getObject1().getTags().addListener(tagListener);
-
-    rightTagList.getItems().addAll(pair.getObject2().getTags());
-    rightTagList.getItems().sort(Comparator.comparing(Tag::getName));
     currentPair.getObject2().getTags().addListener(tagListener);
-
-    leftInfoBox.setItem(pair.getObject1());
-    rightInfoBox.setItem(pair.getObject2());
 
     DecimalFormat df = new DecimalFormat("#.##");
     indexTextField.setText((pairs.indexOf(pair) + 1) + "");
@@ -317,10 +290,10 @@ public class DuplicatesScreen extends Screen {
     }
 
     if (currentPair.getObject1().equals(toDelete)) {
-      leftMediaView.stop();
+      leftSide.stopPlayback();
     }
     if (currentPair.getObject2().equals(toDelete)) {
-      rightMediaView.stop();
+      rightSide.stopPlayback();
     }
 
     int index = pairs.indexOf(currentPair);
@@ -373,11 +346,11 @@ public class DuplicatesScreen extends Screen {
   }
 
   public ItemInfoBox getLeftInfoBox() {
-    return leftInfoBox;
+    return leftSide.getInfoBox();
   }
 
   public ItemInfoBox getRightInfoBox() {
-    return rightInfoBox;
+    return rightSide.getInfoBox();
   }
 
 }
