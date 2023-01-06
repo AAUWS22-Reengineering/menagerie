@@ -45,17 +45,17 @@ public class ItemInfoBox extends VBox {
 
   private static final String DEFAULT_STYLE_CLASS = "item-info-box";
 
-  private static final String DEFAULT_ID_TEXT = "ID: N/A";
-  private static final String DEFAULT_DATE_TEXT = "N/A";
-  private static final String DEFAULT_FILESIZE_TEXT = "0B";
-  private static final String DEFAULT_RESOLUTION_TEXT = "0x0";
-  private static final String DEFAULT_FILEPATH_TEXT = "N/A";
+  protected static final String DEFAULT_ID_TEXT = "ID: N/A";
+  protected static final String DEFAULT_DATE_TEXT = "N/A";
+  protected static final String DEFAULT_FILESIZE_TEXT = "0B";
+  protected static final String DEFAULT_RESOLUTION_TEXT = "0x0";
+  protected static final String DEFAULT_FILEPATH_TEXT = "N/A";
 
-  private final Label idLabel = new Label(DEFAULT_ID_TEXT);
-  private final Label dateLabel = new Label(DEFAULT_DATE_TEXT);
-  private final Label fileSizeLabel = new Label(DEFAULT_FILESIZE_TEXT);
-  private final Label resolutionLabel = new Label(DEFAULT_RESOLUTION_TEXT);
-  private final Label filePathLabel = new Label(DEFAULT_FILEPATH_TEXT);
+  protected final Label idLabel = new Label(DEFAULT_ID_TEXT);
+  protected final Label dateLabel = new Label(DEFAULT_DATE_TEXT);
+  protected final Label fileSizeLabel = new Label(DEFAULT_FILESIZE_TEXT);
+  protected final Label resolutionLabel = new Label(DEFAULT_RESOLUTION_TEXT);
+  protected final Label filePathLabel = new Label(DEFAULT_FILEPATH_TEXT);
 
   /**
    * Extended state of this info box.
@@ -128,5 +128,4 @@ public class ItemInfoBox extends VBox {
     Items.get(ItemInfoBoxRenderer.class, item).ifPresent(itemInfoBoxRenderer ->
         itemInfoBoxRenderer.setItemInfoBoxLabels(item, fileSizeLabel, filePathLabel, resolutionLabel));
   }
-
 }

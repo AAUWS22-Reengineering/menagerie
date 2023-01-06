@@ -1,9 +1,21 @@
 package menagerie.model.menagerie;
 
+import java.io.File;
+
 import static org.mockito.Mockito.mock;
 
 public class ItemTestUtils {
+
+  public static final File WHITE_IMAGE_FILE = new File("target/test-classes/white.png");
+  public static final File BLACK_IMAGE_FILE = new File("target/test-classes/black.png");
+  public static final File GREY_IMAGE_FILE = new File("target/test-classes/grey.png");
+  public static final File GREY_DUPE_IMAGE_FILE = new File("target/test-classes/grey_duplicate.png");
+
   private ItemTestUtils() {
+  }
+
+  public static GroupItem getGroup() {
+    return getGroupWithNElements(0);
   }
 
   public static GroupItem getGroupWithNElements(int elementCount) {
