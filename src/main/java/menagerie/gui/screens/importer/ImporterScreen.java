@@ -139,7 +139,7 @@ public class ImporterScreen extends Screen {
     importerThread.addImporterListener(job -> Platform.runLater(() -> {
       jobs.add(job);
       listView.getItems().add(job);
-      job.statusProperty().addListener((observable, oldValue, newValue) -> {
+      job.addStatusListener((observable, oldValue, newValue) -> {
         if (newValue == ImportJobStatus.SUCCEEDED) {
           if (job.getSimilarTo() != null) {
             job.getSimilarTo().forEach(pair -> {

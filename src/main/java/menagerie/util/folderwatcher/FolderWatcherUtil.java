@@ -2,8 +2,8 @@ package menagerie.util.folderwatcher;
 
 import java.io.File;
 import java.util.logging.Logger;
-import menagerie.model.menagerie.importer.ImportJob;
 import menagerie.model.menagerie.importer.ImporterThread;
+import menagerie.model.menagerie.importer.LocalImportJob;
 import menagerie.util.FileUtil;
 
 public class FolderWatcherUtil {
@@ -37,7 +37,7 @@ public class FolderWatcherUtil {
         file = dest;
       }
 
-      importer.addJob(new ImportJob(file, null));
+      importer.addJob(new LocalImportJob(file, null));
     }
   }
 

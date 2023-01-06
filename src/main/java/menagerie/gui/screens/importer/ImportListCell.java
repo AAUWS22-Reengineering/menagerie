@@ -125,15 +125,15 @@ public class ImportListCell extends ListCell<ImportJob> {
   @Override
   protected void updateItem(ImportJob item, boolean empty) {
     if (getItem() != null) {
-      getItem().progressProperty().removeListener(progressChangeListener);
-      getItem().statusProperty().removeListener(statusListener);
+      getItem().removeProgressListener(progressChangeListener);
+      getItem().removeStatusListener(statusListener);
     }
 
     super.updateItem(item, empty);
 
     if (item != null) {
-      item.progressProperty().addListener(progressChangeListener);
-      item.statusProperty().addListener(statusListener);
+      item.addProgressListener(progressChangeListener);
+      item.addStatusListener(statusListener);
 
       if (item.getUrl() != null) {
         setTooltip(new Tooltip(item.getUrl().toString()));

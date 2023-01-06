@@ -58,6 +58,7 @@ import menagerie.model.menagerie.Tag;
 import menagerie.model.menagerie.importer.ImportJob;
 import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.model.menagerie.importer.ImportJobStatus;
+import menagerie.model.menagerie.importer.LocalImportJob;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.CancellableThread;
 import menagerie.util.Filters;
@@ -315,7 +316,7 @@ public class ImportDialogScreen extends Screen {
           }
 
           for (File file : files) {
-            final ImportJob job = new ImportJob(file, group);
+            final ImportJob job = new LocalImportJob(file, group);
             final List<String> tagsToAdd = new ArrayList<>();
 
             if (tagWithParentCheckBox.isSelected()) {
@@ -330,7 +331,7 @@ public class ImportDialogScreen extends Screen {
             final boolean renameToHash = renameWithHashCheckBox.isSelected();
 
             if (!tagsToAdd.isEmpty() || renameToHash) {
-              job.statusProperty().addListener((observable, oldValue, newValue) -> {
+              job.addStatusListener((observable, oldValue, newValue) -> {
                 if (newValue == ImportJobStatus.SUCCEEDED) {
                   // Add tags
                   for (String tagName : tagsToAdd) {

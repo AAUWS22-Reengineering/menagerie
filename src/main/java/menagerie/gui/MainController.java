@@ -52,6 +52,8 @@ import menagerie.duplicates.DuplicateFinder;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.handler.*;
+import menagerie.model.menagerie.importer.LocalImportJob;
+import menagerie.model.menagerie.importer.WebImportJob;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
 import menagerie.gui.itemhandler.opener.ItemOpener;
@@ -1481,7 +1483,7 @@ public class MainController {
           importDialogScreen.setGroupName(file.getName());
           importDialogScreen.setFolder(file);
         } else if (Filters.FILE_NAME_FILTER.accept(file)) {
-          importer.addJob(new ImportJob(file, null));
+          importer.addJob(new LocalImportJob(file, null));
         }
       }
     } else if (url != null && !url.isEmpty()) {
@@ -1510,7 +1512,7 @@ public class MainController {
           target = FileUtil.resolveDuplicateFilename(new File(folder, filename));
         }
         if (Filters.FILE_NAME_FILTER.accept(target)) {
-          importer.addJob(new ImportJob(new URL(url), target, null));
+          importer.addJob(new WebImportJob(new URL(url), target, null));
         }
       } catch (MalformedURLException e) {
         LOGGER.log(Level.WARNING, "File dragged from web has bad URL", e);
