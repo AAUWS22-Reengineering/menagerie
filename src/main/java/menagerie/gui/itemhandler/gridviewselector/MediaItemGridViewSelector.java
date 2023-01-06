@@ -16,7 +16,7 @@ public class MediaItemGridViewSelector implements ItemGridViewSelector {
   }
 
   @Override
-  public boolean doDragAndDrop(Item item, Dragboard db, ItemGridView itemGridView) {
+  public boolean doDragAndDrop(Item item, Dragboard db) {
     String filename = ((MediaItem) item).getFile().getName().toLowerCase();
     if (FileExplorer.hasAllowedFileEnding(filename)) {
       if (item.getThumbnail().isLoaded()) {

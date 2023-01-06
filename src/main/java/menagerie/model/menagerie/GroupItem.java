@@ -38,8 +38,8 @@ import menagerie.gui.Thumbnail;
  */
 public class GroupItem extends Item {
 
-  private final ObservableList<MediaItem> elements = FXCollections.observableArrayList();
-  private final StringProperty title = new SimpleStringProperty();
+  protected ObservableList<MediaItem> elements = FXCollections.observableArrayList();
+  protected StringProperty title = new SimpleStringProperty();
 
 
   /**

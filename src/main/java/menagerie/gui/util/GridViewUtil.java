@@ -22,7 +22,7 @@ public class GridViewUtil {
   public static void doDragAndDrop(Dragboard db, ItemGridView itemGridView) {
     for (Item item : itemGridView.getSelected()) {
       Optional<ItemGridViewSelector> igvs = Items.get(ItemGridViewSelector.class, item);
-      if (igvs.isPresent() && igvs.get().doDragAndDrop(item, db, itemGridView)) {
+      if (igvs.isPresent() && igvs.get().doDragAndDrop(item, db)) {
         break;
       }
     }

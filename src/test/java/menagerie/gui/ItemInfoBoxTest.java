@@ -24,7 +24,7 @@ public class ItemInfoBoxTest extends UITest {
     infoBox.setItem(m);
     // wait for rendering to be done
     Thread.sleep(100);
-    assertEquals(imgWidth+"x"+imgHeight, infoBox.getResolutionLabel().getText());
+    assertEquals(imgWidth + "x" + imgHeight, infoBox.getResolutionLabel().getText());
     assertNotEquals(TestItemInfoBox.DEFAULT_FILESIZE_TEXT, infoBox.getFileSizeLabel().getText());
   }
 
