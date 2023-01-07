@@ -24,15 +24,14 @@
 
 package menagerie.util;
 
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
+import javafx.util.Duration;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Task;
-import javafx.util.Duration;
-import menagerie.settings.Settings;
 
 /**
  * Originally contributed by Jason Pollastrini, with changes.

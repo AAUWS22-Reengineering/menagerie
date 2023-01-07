@@ -269,13 +269,13 @@ public class CompareToOnlineScreen extends Screen {
   }
 
   private class CompareToOnlineWorkerThread extends CancellableThread {
-    final long UPDATE_INTERVAL;
+    final long updateInterval;
     private final Match match;
     long lastUpdate;
 
     public CompareToOnlineWorkerThread(Match match) {
       this.match = match;
-      UPDATE_INTERVAL = 17;
+      updateInterval = 17;
       lastUpdate = 0;
     }
 
@@ -332,7 +332,7 @@ public class CompareToOnlineScreen extends Screen {
             fos.getChannel().transferFrom(rbc, i, chunkSize);
 
             final long time = System.currentTimeMillis();
-            if (time > lastUpdate + UPDATE_INTERVAL) {
+            if (time > lastUpdate + updateInterval) {
               lastUpdate = time;
               final double finalI = i;
               Platform.runLater(() -> loadingIndicator.setProgress(finalI / size));

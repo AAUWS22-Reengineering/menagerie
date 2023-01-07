@@ -57,7 +57,7 @@ public class OldSettings {
     TAG_VIDEO, TAG_IMAGE, EXPAND_ITEM_INFO
   }
 
-  private final Map<Key, Property<?>> vars = new HashMap<>();
+  private final Map<Key, Property> vars = new HashMap<>();
   private File file;
 
 
@@ -177,7 +177,7 @@ public class OldSettings {
         .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault())
         .format(new Date().toInstant()));
 
-    for (Map.Entry<Key, Property<?>> entry : vars.entrySet()) {
+    for (Map.Entry<Key, Property> entry : vars.entrySet()) {
       // Prefix + Delimiter
       writer.print(entry.getKey() + ":");
 
@@ -290,7 +290,7 @@ public class OldSettings {
    * @param key Key.
    * @return The property associated with that key. Null if no default value exists AND no value was set to this key.
    */
-  public Property<?> getProperty(Key key) {
+  public Property getProperty(Key key) {
     return vars.get(key);
   }
 

@@ -1490,10 +1490,8 @@ public class MainController {
 
     if (files != null && !files.isEmpty()) {
       importFiles(files);
-    } else if (url != null && !url.isEmpty()) {
-      if (importFromURL(url)) {
-        return;
-      }
+    } else if (url != null && !url.isEmpty() && importFromURL(url)) {
+      return;
     }
     event.consume();
   }

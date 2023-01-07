@@ -295,7 +295,6 @@ public class DuplicateOptionsScreen extends Screen {
 
     List<Item> compare = getFilteredItems(all, compareChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());
     List<Item> to = getFilteredItems(all, toChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());
-    ;
 
     if (settings.cudaDuplicates.getValue()) {
       launchGPUDuplicateFinder(compare, to);

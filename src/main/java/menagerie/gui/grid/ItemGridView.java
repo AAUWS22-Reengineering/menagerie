@@ -24,11 +24,7 @@
 
 package menagerie.gui.grid;
 
-import java.util.HashSet;
-import java.util.Set;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -41,6 +37,9 @@ import menagerie.gui.Thumbnail;
 import menagerie.model.menagerie.Item;
 import menagerie.util.listeners.ObjectListener;
 import org.controlsfx.control.GridView;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ItemGridView extends GridView<Item> {
 

@@ -109,7 +109,9 @@ public class ItemUtil {
    * @return [groupCount, mediaCount, itemsInGroupCount]
    */
   public static int[] getPropertyCounts(List<Item> items) {
-    int groupCount = 0, mediaCount = 0, itemsInGroupCount = 0;
+    int groupCount = 0;
+    int mediaCount = 0;
+    int itemsInGroupCount = 0;
     for (Item item : items) {
       Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
       if (itemProps.isPresent()) {

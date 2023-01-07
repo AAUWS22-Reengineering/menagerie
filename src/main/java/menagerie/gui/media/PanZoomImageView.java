@@ -143,11 +143,7 @@ public class PanZoomImageView extends DynamicImageView {
 
       if (image != null) {
         if (image.isBackgroundLoading() && image.getProgress() != 1.0) {
-          image.progressProperty().addListener((observable1, oldValue1, newValue) -> {
-            if (!image.isError() && newValue.doubleValue() == 1.0) {
-              fitImageToView();
-            }
-          });
+          setupImageProgressListener(image);
         } else if (getFitWidth() != 0 && getFitHeight() != 0) {
           fitImageToView();
         } else {
@@ -156,6 +152,14 @@ public class PanZoomImageView extends DynamicImageView {
 
         updateViewPort();
       } else {
+        fitImageToView();
+      }
+    });
+  }
+
+  private void setupImageProgressListener(Image image) {
+    image.progressProperty().addListener((observable1, oldValue1, newValue) -> {
+      if (!image.isError() && newValue.doubleValue() == 1.0) {
         fitImageToView();
       }
     });
@@ -171,26 +175,30 @@ public class PanZoomImageView extends DynamicImageView {
       work.add(fitScale);
       Collections.sort(work);
 
-      if (event.getDeltaY() < 0) {
-        for (double d : work) {
-          if (d > scale.get()) {
-            scale.set(d);
-            break;
-          }
-        }
-      } else {
-        Collections.reverse(work);
-        for (double d : work) {
-          if (d < scale.get()) {
-            scale.set(d);
-            break;
-          }
-        }
-      }
+      setScale(event, work);
 
       updateViewPort();
       event.consume();
     });
+  }
+
+  private void setScale(ScrollEvent event, List<Double> work) {
+    if (event.getDeltaY() < 0) {
+      for (double d : work) {
+        if (d > scale.get()) {
+          scale.set(d);
+          break;
+        }
+      }
+    } else {
+      Collections.reverse(work);
+      for (double d : work) {
+        if (d < scale.get()) {
+          scale.set(d);
+          break;
+        }
+      }
+    }
   }
 
   private void setupMouseReleasedEventHandler() {

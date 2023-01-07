@@ -65,7 +65,7 @@ public class RebuildSimilarityCacheMenuButtonAction extends CancellableThread {
         continue;
       }
 
-      if (itemSim.get().isSimilarTo(item, i2, confidenceSquare, MediaItem.MIN_CONFIDENCE)) {
+      if (itemSim.isPresent() && itemSim.get().isSimilarTo(item, i2, confidenceSquare, MediaItem.MIN_CONFIDENCE)) {
         hasSimilar = true;
         break;
       }

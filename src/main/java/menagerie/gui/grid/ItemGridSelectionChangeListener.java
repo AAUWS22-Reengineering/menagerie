@@ -13,16 +13,16 @@ public class ItemGridSelectionChangeListener implements ListChangeListener<Item>
     while (c.next()) {
       for (Item item : c.getRemoved()) {
         Object obj = item.getMetadata().get(SELECTED);
-        if (obj instanceof BooleanProperty) {
-          ((BooleanProperty) obj).set(false);
+        if (obj instanceof BooleanProperty booleanProperty) {
+          booleanProperty.set(false);
         } else {
           item.getMetadata().put(SELECTED, new SimpleBooleanProperty(false));
         }
       }
       for (Item item : c.getAddedSubList()) {
         Object obj = item.getMetadata().get(SELECTED);
-        if (obj instanceof BooleanProperty) {
-          ((BooleanProperty) obj).set(true);
+        if (obj instanceof BooleanProperty booleanProperty) {
+          booleanProperty.set(true);
         } else {
           item.getMetadata().put(SELECTED, new SimpleBooleanProperty(true));
         }

@@ -360,9 +360,9 @@ public class DynamicVideoView extends StackPane {
    * @param b Repeat
    */
   public void setRepeat(boolean b) {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
-      mediaPlayer.controls().setRepeat(b);
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().setRepeat(b);
     }
   }
 
@@ -370,16 +370,16 @@ public class DynamicVideoView extends StackPane {
    * @return True if the video is currently playing
    */
   public boolean isPlaying() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    return !released && mediaPlayer != null && mediaPlayer.status().isPlaying();
+    MediaPlayer player = getMediaPlayer();
+    return !released && player != null && player.status().isPlaying();
   }
 
   /**
    * @return True if the video will repeat on completion
    */
   public boolean isRepeating() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    return !released && mediaPlayer != null && mediaPlayer.controls().getRepeat();
+    MediaPlayer player = getMediaPlayer();
+    return !released && player != null && player.controls().getRepeat();
   }
 
   /**
@@ -393,9 +393,9 @@ public class DynamicVideoView extends StackPane {
    * Pauses the video without resetting it
    */
   public void pause() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
-      mediaPlayer.controls().pause();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().pause();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -407,9 +407,9 @@ public class DynamicVideoView extends StackPane {
    * Plays the video from the current position
    */
   public void play() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
-      mediaPlayer.controls().play();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().play();
       if (!timer.getState().equals(Worker.State.READY)) {
         timer = new NanoTimer(TIMER_PERIOD) {
           @Override
@@ -427,9 +427,9 @@ public class DynamicVideoView extends StackPane {
    * Stops the video and resets it to the start of the video
    */
   public void stop() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
-      mediaPlayer.controls().stop();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().stop();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -443,9 +443,9 @@ public class DynamicVideoView extends StackPane {
    * @param path Path to video file
    */
   public void startMedia(String path) {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
-      mediaPlayer.media().start(path);
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.media().start(path);
       play();
     }
   }
@@ -454,13 +454,13 @@ public class DynamicVideoView extends StackPane {
    * Releases all VLCJ components and renders this object invalid
    */
   public void releaseVLCJ() {
-    MediaPlayer mediaPlayer = getMediaPlayer();
-    if (!released && mediaPlayer != null) {
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
       if (mediaPlayerComponent != null) {
         mediaPlayerComponent.mediaPlayerFactory().release();
       }
-      mediaPlayer.controls().stop();
-      mediaPlayer.release();
+      player.controls().stop();
+      player.release();
       released = true;
     }
   }
