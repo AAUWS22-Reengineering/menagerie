@@ -119,7 +119,7 @@ public class ImageScalerThread extends CancellableThread {
   /**
    * Clears the queue
    */
-  public void clear() {
+  public synchronized void clear() {
     lock.lock();
     try {
       source = null;
@@ -137,7 +137,7 @@ public class ImageScalerThread extends CancellableThread {
    * @param scale    Amount to scale by
    * @param callback Callback once complete
    */
-  public void enqueue(Image source, double scale, ObjectListener<Image> callback) {
+  public synchronized void enqueue(Image source, double scale, ObjectListener<Image> callback) {
     lock.lock();
     try {
       this.source = source;
