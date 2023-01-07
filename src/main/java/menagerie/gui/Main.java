@@ -154,10 +154,13 @@ public class Main extends Application {
 
       @Override
       public void flush() {
+        System.out.flush();
+        System.err.flush();
       }
 
       @Override
       public void close() throws SecurityException {
+        // no closing needed since System streams are used
       }
     });
     try {

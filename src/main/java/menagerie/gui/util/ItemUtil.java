@@ -21,7 +21,7 @@ public class ItemUtil {
   private ItemUtil() {
   }
 
-  public static void removeFromGroup(List<Item> selected, ContextMenu cm) {
+  public static void populateContextMenuRemoveFromGroup(List<Item> selected, ContextMenu cm) {
     MenuItem removeFromGroup = new MenuItem("Remove from group");
     removeFromGroup.setOnAction(event -> selected.forEach(item -> {
       Items.get(ItemGroupHandler.class, item).ifPresent(itemGroupHandler -> itemGroupHandler.removeFromGroup(item));
@@ -100,5 +100,24 @@ public class ItemUtil {
       tag = menagerie.createTag(name);
     }
     item.addTag(tag);
+  }
+
+  /**
+   * Get counts of how many items with the following properties are in the provided list:
+   * isGroup, isMedia, isInGroup
+   * @param items Items to analyze.
+   * @return [groupCount, mediaCount, itemsInGroupCount]
+   */
+  public static int[] getPropertyCounts(List<Item> items) {
+    int groupCount = 0, mediaCount = 0, itemsInGroupCount = 0;
+    for (Item item : items) {
+      Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
+      if (itemProps.isPresent()) {
+        groupCount += itemProps.get().isGroup(item) ? 1 : 0;
+        mediaCount += itemProps.get().isMedia(item) ? 1 : 0;
+        itemsInGroupCount += itemProps.get().isInGroup(item) ? 1 : 0;
+      }
+    }
+    return new int[] {groupCount, mediaCount, itemsInGroupCount};
   }
 }
