@@ -371,9 +371,9 @@ public class ImportDialogScreen extends Screen {
 
     @Override
     public void run() {
-      updateProgress();
-
       if (running) {
+        updateProgress();
+
         sortFiles();
 
         GroupItem group = createGroup();
@@ -403,10 +403,6 @@ public class ImportDialogScreen extends Screen {
       int processed = 0;
       int total = files.size();
       for (int i = 0; i < files.size(); i++) {
-        if (!running) {
-          break;
-        }
-
         final int finalNum = processed;
         final int finalTotal = total;
         Platform.runLater(() -> ps.setProgress(finalNum, finalTotal));
