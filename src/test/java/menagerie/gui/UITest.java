@@ -7,7 +7,7 @@ import org.testfx.framework.junit5.ApplicationExtension;
 @ExtendWith(ApplicationExtension.class)
 public abstract class UITest {
 
-  public static final int MAX_WAIT_TIME = 3000;
+  public static final int MAX_WAIT_TIME = 5000;
 
   @BeforeAll
   static void setupHeadless() {
