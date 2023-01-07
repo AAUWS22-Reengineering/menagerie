@@ -1209,8 +1209,8 @@ public class MainController {
   private void cleanupPreviousSearch() {
     if (currentSearch != null) {
       GroupItem scope = null;
-      if (currentSearch instanceof GroupSearch currentSearch) {
-        scope = currentSearch.getGroup();
+      if (currentSearch instanceof GroupSearch currentGroupSearch) {
+        scope = currentGroupSearch.getGroup();
       }
       searchHistory.push(
           new SearchHistory(currentSearch.getSearchString(), scope, itemGridView.getSelected(),
@@ -1369,8 +1369,8 @@ public class MainController {
 
   private void searchOnAction(ActionEvent event) {
     GroupItem scope = null;
-    if (currentSearch instanceof GroupSearch currentSearch) {
-      scope = currentSearch.getGroup();
+    if (currentSearch instanceof GroupSearch currentGroupSearch) {
+      scope = currentGroupSearch.getGroup();
     }
     applySearch(searchTextField.getText(), scope, listDescendingToggleButton.isSelected(),
         showGroupedToggleButton.isSelected(), shuffledSearchButton.isSelected());
