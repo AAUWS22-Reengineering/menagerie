@@ -98,15 +98,7 @@ public class ImageScalerThread extends CancellableThread {
       }
 
       try {
-        BufferedImage bimg = SwingFXUtils.fromFXImage(currentSource, null);
-
-        ResampleOp resizeOp = new ResampleOp((int) (bimg.getWidth() / currentScale + 0.5),
-            (int) (bimg.getHeight() / currentScale + 0.5));
-        resizeOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Normal);
-        resizeOp.setFilter(ResampleFilters.getLanczos3Filter());
-        BufferedImage scaledImage = resizeOp.filter(bimg, bimg);
-
-        currentCallback.pass(SwingFXUtils.toFXImage(scaledImage, null));
+        scaleImage(currentSource, currentScale, currentCallback);
       } catch (Throwable e) {
         LOGGER.log(Level.SEVERE,
             String.format(
@@ -116,10 +108,24 @@ public class ImageScalerThread extends CancellableThread {
     }
   }
 
+  private void scaleImage(Image currentSource, double currentScale, ObjectListener<Image> currentCallback) {
+    if (currentSource != null && currentCallback != null) {
+      BufferedImage bimg = SwingFXUtils.fromFXImage(currentSource, null);
+
+      ResampleOp resizeOp = new ResampleOp((int) (bimg.getWidth() / currentScale + 0.5),
+          (int) (bimg.getHeight() / currentScale + 0.5));
+      resizeOp.setUnsharpenMask(AdvancedResizeOp.UnsharpenMask.Normal);
+      resizeOp.setFilter(ResampleFilters.getLanczos3Filter());
+      BufferedImage scaledImage = resizeOp.filter(bimg, bimg);
+
+      currentCallback.pass(SwingFXUtils.toFXImage(scaledImage, null));
+    }
+  }
+
   /**
    * Clears the queue
    */
-  public synchronized void clear() {
+  public void clear() {
     lock.lock();
     try {
       source = null;
@@ -137,7 +143,7 @@ public class ImageScalerThread extends CancellableThread {
    * @param scale    Amount to scale by
    * @param callback Callback once complete
    */
-  public synchronized void enqueue(Image source, double scale, ObjectListener<Image> callback) {
+  public void enqueue(Image source, double scale, ObjectListener<Image> callback) {
     lock.lock();
     try {
       this.source = source;
