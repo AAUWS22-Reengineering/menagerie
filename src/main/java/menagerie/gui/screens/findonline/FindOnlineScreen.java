@@ -24,18 +24,6 @@
 
 package menagerie.gui.screens.findonline;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -45,22 +33,15 @@ import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import menagerie.duplicates.DuplicateFinder;
 import menagerie.duplicates.Match;
 import menagerie.gui.Thumbnail;
@@ -74,6 +55,16 @@ import menagerie.model.menagerie.Tag;
 import menagerie.util.Util;
 import menagerie.util.listeners.ObjectListener;
 import org.controlsfx.control.GridView;
+
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FindOnlineScreen extends Screen {
 
@@ -484,8 +475,8 @@ public class FindOnlineScreen extends Screen {
 
   private void setFileInfoLabelDirect(MediaItem item) {
     yourImageInfoLabel.setText(item.getFile() + "\n" + (int) item.getImage().getWidth() + "x" +
-                               (int) item.getImage().getHeight() + "\n" +
-                               Util.bytesToPrettyString(item.getFile().length()));
+        (int) item.getImage().getHeight() + "\n" +
+        Util.bytesToPrettyString(item.getFile().length()));
   }
 
   private void displayMatches(MatchGroup item) {
@@ -500,10 +491,9 @@ public class FindOnlineScreen extends Screen {
     }));
     tagListView.getItems().sort(String::compareTo);
 
-    if (item.getStatus() == MatchGroup.Status.FAILED) {
-      if (!matchesStackPane.getChildren().contains(failedVBox)) {
-        matchesStackPane.getChildren().add(failedVBox);
-      }
+    if (item.getStatus() == MatchGroup.Status.FAILED &&
+        !matchesStackPane.getChildren().contains(failedVBox)) {
+      matchesStackPane.getChildren().add(failedVBox);
     }
   }
 

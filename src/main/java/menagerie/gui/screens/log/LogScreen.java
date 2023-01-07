@@ -40,10 +40,8 @@ public class LogScreen extends Screen {
 
   public LogScreen() {
     addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.L && event.isControlDown()) {
+      if (event.getCode() == KeyCode.ESCAPE ||
+          (event.getCode() == KeyCode.L && event.isControlDown())) {
         close();
         event.consume();
       }
@@ -58,10 +56,8 @@ public class LogScreen extends Screen {
 
     listView = new ListView<>();
     listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.L && event.isControlDown()) {
+      if (event.getCode() == KeyCode.ESCAPE ||
+          (event.getCode() == KeyCode.L && event.isControlDown())) {
         close();
         event.consume();
       }

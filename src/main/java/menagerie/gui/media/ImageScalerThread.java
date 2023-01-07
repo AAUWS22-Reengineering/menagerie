@@ -27,17 +27,17 @@ package menagerie.gui.media;
 import com.mortennobel.imagescaling.AdvancedResizeOp;
 import com.mortennobel.imagescaling.ResampleFilters;
 import com.mortennobel.imagescaling.ResampleOp;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import menagerie.util.CancellableThread;
+import menagerie.util.listeners.ObjectListener;
+
 import java.awt.image.BufferedImage;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
-import menagerie.util.CancellableThread;
-import menagerie.util.listeners.ObjectListener;
 
 public class ImageScalerThread extends CancellableThread {
 

@@ -24,8 +24,6 @@
 
 package menagerie.gui.screens.importer;
 
-import java.util.ArrayList;
-import java.util.List;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -43,9 +41,12 @@ import menagerie.gui.screens.Screen;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.importer.ImportJob;
-import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.model.menagerie.importer.ImportJobStatus;
+import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImporterScreen extends Screen {
 
@@ -104,19 +105,23 @@ public class ImporterScreen extends Screen {
     importerThread.addImporterListener(job -> Platform.runLater(() -> {
       jobs.add(job);
       listView.getItems().add(job);
-      job.addStatusListener((observable, oldValue, newValue) -> {
-        if (newValue == ImportJobStatus.SUCCEEDED) {
-          if (job.getSimilarTo() != null) {
-            job.getSimilarTo().forEach(pair -> {
-                if (!similar.contains(pair)) {
-                    similar.add(pair);
-                }
-            });
-          }
-          removeJob(job);
-        }
-      });
+      addJobStatusListener(job);
     }));
+  }
+
+  private void addJobStatusListener(ImportJob job) {
+    job.addStatusListener((observable, oldValue, newValue) -> {
+      if (newValue == ImportJobStatus.SUCCEEDED) {
+        if (job.getSimilarTo() != null) {
+          job.getSimilarTo().forEach(pair -> {
+            if (!similar.contains(pair)) {
+              similar.add(pair);
+            }
+          });
+        }
+        removeJob(job);
+      }
+    });
   }
 
   private Button getPairsButton(ObjectListener<List<SimilarPair<MediaItem>>> duplicateResolverListener) {
@@ -159,10 +164,8 @@ public class ImporterScreen extends Screen {
 
   private void setupListViewEventHandlers() {
     listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
+      if (event.getCode() == KeyCode.ESCAPE ||
+          (event.getCode() == KeyCode.N && event.isControlDown())) {
         close();
         event.consume();
       }
@@ -171,10 +174,8 @@ public class ImporterScreen extends Screen {
 
   private void setupKeyEventHandlers() {
     addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
+      if (event.getCode() == KeyCode.ESCAPE ||
+          (event.getCode() == KeyCode.N && event.isControlDown())) {
         close();
         event.consume();
       }
