@@ -28,6 +28,10 @@ import com.mortennobel.imagescaling.AdvancedResizeOp;
 import com.mortennobel.imagescaling.ResampleFilters;
 import com.mortennobel.imagescaling.ResampleOp;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
@@ -57,6 +61,9 @@ public class ImageScalerThread extends CancellableThread {
    */
   private ObjectListener<Image> callback = null;
 
+  private final Lock lock = new ReentrantLock();
+  private final Condition condition = lock.newCondition();
+
   @Override
   public void run() {
     while (running) {
@@ -66,7 +73,8 @@ public class ImageScalerThread extends CancellableThread {
 
       // Loop until job is received
       while (true) {
-        synchronized (this) {
+        lock.lock();
+        try {
           // Pop queue
           currentSource = this.source;
           currentScale = this.scale;
@@ -76,7 +84,7 @@ public class ImageScalerThread extends CancellableThread {
           if (currentSource == null || currentScale < 0 || currentCallback == null) {
             // Nothing in queue
             try {
-              wait();
+              condition.await();
             } catch (InterruptedException ignore) {
               Thread.currentThread().interrupt();
             }
@@ -84,6 +92,8 @@ public class ImageScalerThread extends CancellableThread {
             // Something in queue
             break;
           }
+        } finally {
+          lock.unlock();
         }
       }
 
@@ -109,10 +119,15 @@ public class ImageScalerThread extends CancellableThread {
   /**
    * Clears the queue
    */
-  public synchronized void clear() {
-    source = null;
-    scale = 1;
-    callback = null;
+  public void clear() {
+    lock.lock();
+    try {
+      source = null;
+      scale = -1;
+      callback = null;
+    } finally {
+      lock.unlock();
+    }
   }
 
   /**
@@ -122,11 +137,16 @@ public class ImageScalerThread extends CancellableThread {
    * @param scale    Amount to scale by
    * @param callback Callback once complete
    */
-  public synchronized void enqueue(Image source, double scale, ObjectListener<Image> callback) {
-    this.source = source;
-    this.scale = scale;
-    this.callback = callback;
-    this.notifyAll();
+  public void enqueue(Image source, double scale, ObjectListener<Image> callback) {
+    lock.lock();
+    try {
+      this.source = source;
+      this.scale = scale;
+      this.callback = callback;
+      condition.signal();
+    } finally {
+      lock.unlock();
+    }
   }
 
 }
