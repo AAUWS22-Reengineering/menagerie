@@ -24,10 +24,6 @@
 
 package menagerie.gui.screens.duplicates;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
@@ -37,6 +33,10 @@ import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.util.CancellableThread;
 import menagerie.util.listeners.ObjectListener;
 import menagerie.util.listeners.PokeListener;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class DuplicateFinderThread extends CancellableThread {
 
@@ -75,33 +75,11 @@ public class DuplicateFinderThread extends CancellableThread {
       if (!running) {
         break;
       }
-      Optional<ItemSimilarity> itemSim1 = Items.get(ItemSimilarity.class, item1);
-      if (itemSim1.isEmpty() || !itemSim1.get().isEligibleForSimCalc(item1) || itemSim1.get().hasNoSimilar(item1)) {
+      if (!canUseInComparison(item1)) {
         continue;
       }
 
-      for (Item item2 : compareTo) {
-        if (!running) {
-          break;
-        }
-
-        Optional<ItemSimilarity> itemSim2 = Items.get(ItemSimilarity.class, item2);
-        if (itemSim2.isEmpty() || !itemSim2.get().isEligibleForSimCalc(item2) || itemSim2.get().hasNoSimilar(item2) ||
-            item1.equals(item2)) {
-          continue;
-        }
-
-        final double similarity = ((MediaItem) item1).getSimilarityTo((MediaItem) item2);
-        if (similarity >= confidenceSquare ||
-            (similarity >= confidence && ((MediaItem) item1).getHistogram().isColorful() &&
-             ((MediaItem) item2).getHistogram().isColorful())) {
-          SimilarPair<MediaItem> pair =
-              new SimilarPair<>((MediaItem) item1, (MediaItem) item2, similarity);
-          if (!menagerie.hasNonDuplicate(pair)) {
-            pairs.add(pair);
-          }
-        }
-      }
+      performComparison(confidenceSquare, item1);
 
       if (progressListener != null) {
         progressListener.poke();
@@ -112,6 +90,40 @@ public class DuplicateFinderThread extends CancellableThread {
       finishListener.pass(pairs);
     }
     running = false;
+  }
+
+  private boolean canUseInComparison(Item item) {
+    Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, item);
+    return itemSim.isPresent() && itemSim.get().isEligibleForSimCalc(item) && !itemSim.get().hasNoSimilar(item);
+  }
+
+  private void performComparison(double confidenceSquare, Item base) {
+    for (Item item2 : compareTo) {
+      if (!running) {
+        break;
+      }
+
+      Optional<ItemSimilarity> itemSim2 = Items.get(ItemSimilarity.class, item2);
+      if (itemSim2.isEmpty() || !itemSim2.get().isEligibleForSimCalc(item2) || itemSim2.get().hasNoSimilar(item2) ||
+          base.equals(item2)) {
+        continue;
+      }
+
+      createSimPairIfRequired(confidenceSquare, (MediaItem) base, (MediaItem) item2);
+    }
+  }
+
+  private void createSimPairIfRequired(double confidenceSquare, MediaItem item1, MediaItem item2) {
+    final double similarity = item1.getSimilarityTo(item2);
+    if (similarity >= confidenceSquare ||
+        (similarity >= confidence && item1.getHistogram().isColorful() &&
+            item2.getHistogram().isColorful())) {
+      SimilarPair<MediaItem> pair =
+          new SimilarPair<>(item1, item2, similarity);
+      if (!menagerie.hasNonDuplicate(pair)) {
+        pairs.add(pair);
+      }
+    }
   }
 
 }

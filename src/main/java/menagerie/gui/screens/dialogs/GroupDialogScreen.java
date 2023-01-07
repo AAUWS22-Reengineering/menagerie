@@ -24,18 +24,11 @@
 
 package menagerie.gui.screens.dialogs;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -50,6 +43,10 @@ import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class GroupDialogScreen extends Screen {
 
@@ -127,9 +124,9 @@ public class GroupDialogScreen extends Screen {
       this.toGroup = null;
     }
 
-      if (itemCount == 0) {
-          return;
-      }
+    if (itemCount == 0) {
+      return;
+    }
 
     manager.open(this);
 
@@ -145,20 +142,7 @@ public class GroupDialogScreen extends Screen {
     if (menagerie != null && toGroup != null && !toGroup.isEmpty()) {
       GroupItem group = menagerie.createGroup(toGroup, textField.getText());
       if (group != null) {
-        if (isTagTagme()) {
-          Tag tagme = menagerie.getTagByName("tagme");
-            if (tagme == null) {
-                tagme = menagerie.createTag("tagme");
-            }
-          group.addTag(tagme);
-        }
-        if (elementTagsCheckBox.isSelected()) {
-          group.getElements().forEach(item -> item.getTags().forEach(group::addTag));
-        }
-
-          if (groupListener != null) {
-              groupListener.pass(group);
-          }
+        createGroup(group);
       } else {
         LOGGER.severe("Failed to create group: " + textField.getText());
       }
@@ -167,6 +151,23 @@ public class GroupDialogScreen extends Screen {
     }
 
     close();
+  }
+
+  private void createGroup(GroupItem group) {
+    if (isTagTagme()) {
+      Tag tagme = menagerie.getTagByName("tagme");
+      if (tagme == null) {
+        tagme = menagerie.createTag("tagme");
+      }
+      group.addTag(tagme);
+    }
+    if (elementTagsCheckBox.isSelected()) {
+      group.getElements().forEach(item -> item.getTags().forEach(group::addTag));
+    }
+
+    if (groupListener != null) {
+      groupListener.pass(group);
+    }
   }
 
   public BooleanProperty tagTagmeProperty() {

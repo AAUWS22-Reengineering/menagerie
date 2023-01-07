@@ -24,24 +24,10 @@
 
 package menagerie.gui.screens.dialogs;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -56,13 +42,19 @@ import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
 import menagerie.model.menagerie.importer.ImportJob;
-import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.model.menagerie.importer.ImportJobStatus;
+import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.model.menagerie.importer.LocalImportJob;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.CancellableThread;
 import menagerie.util.Filters;
 import menagerie.util.WindowsExplorerComparator;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ImportDialogScreen extends Screen {
 
@@ -260,6 +252,35 @@ public class ImportDialogScreen extends Screen {
     CancellableThread ct = new CancellableThread() {
       @Override
       public void run() {
+        updateProgress();
+
+        if (running) {
+          sortFiles();
+
+          GroupItem group = createGroup();
+
+          for (File file : files) {
+            final ImportJob job = new LocalImportJob(file, group);
+            final List<String> tagsToAdd = getTagsToAdd(file);
+
+            final boolean renameToHash = renameWithHashCheckBox.isSelected();
+
+            if (!tagsToAdd.isEmpty() || renameToHash) {
+              addRenameToHashListener(job, tagsToAdd, renameToHash);
+            }
+
+            importer.addJob(job);
+          }
+        }
+
+        saveSettings();
+        Platform.runLater(() -> {
+          ps.close();
+          close();
+        });
+      }
+
+      private void updateProgress() {
         int processed = 0;
         int total = files.size();
         for (int i = 0; i < files.size(); i++) {
@@ -289,99 +310,13 @@ public class ImportDialogScreen extends Screen {
             i--;
           }
         }
-
-        if (running) {
-          switch (orderChoiceBox.getValue()) {
-            case DATE_MODIFIED:
-              files.sort(Comparator.comparingLong(File::lastModified));
-              break;
-            case ALPHABETICAL:
-              files.sort(new WindowsExplorerComparator());
-              break;
-            case AS_SELECTED:
-            default:
-              break;
-          }
-
-          GroupItem group = null;
-          if (createGroupCheckBox.isSelected() && !createGroupTextField.getText().isEmpty()) {
-            group = menagerie.createGroup(null, createGroupTextField.getText());
-            if (settings.tagTagme.getValue()) {
-              Tag t = menagerie.getTagByName("tagme");
-              if (t == null) {
-                t = menagerie.createTag("tagme");
-              }
-              group.addTag(t);
-            }
-          }
-
-          for (File file : files) {
-            final ImportJob job = new LocalImportJob(file, group);
-            final List<String> tagsToAdd = new ArrayList<>();
-
-            if (tagWithParentCheckBox.isSelected()) {
-              tagsToAdd.add(file.getParentFile().getName().toLowerCase());
-            }
-            if (tagWithTagsCheckBox.isSelected() && tagWithTagsTextField.getText() != null &&
-                !tagWithTagsTextField.getText().isEmpty()) {
-              tagsToAdd.addAll(
-                  Arrays.asList(tagWithTagsTextField.getText().toLowerCase().split("\\s")));
-            }
-
-            final boolean renameToHash = renameWithHashCheckBox.isSelected();
-
-            if (!tagsToAdd.isEmpty() || renameToHash) {
-              job.addStatusListener((observable, oldValue, newValue) -> {
-                if (newValue == ImportJobStatus.SUCCEEDED) {
-                  // Add tags
-                  for (String tagName : tagsToAdd) {
-                    if (tagName.contains(" ")) {
-                      tagName = tagName.replaceAll("\\s", "_"); // Replace all whitespace
-                    }
-
-                    if (!tagName.matches(Tag.NAME_REGEX)) {
-                      continue;
-                    }
-
-                    Tag t = menagerie.getTagByName(tagName);
-                    if (t == null) {
-                      t = menagerie.createTag(tagName);
-                    }
-                    job.getItem().addTag(t);
-                  }
-
-                  // Rename to hash
-                  if (renameToHash && job.getItem().getMD5() != null) {
-                    File dest = new File(job.getFile().getParentFile(), job.getItem().getMD5() +
-                                                                        job.getFile().getName()
-                                                                            .substring(job.getFile()
-                                                                                .getName()
-                                                                                .lastIndexOf('.')));
-                    if (job.getItem().moveFile(dest)) {
-                      LOGGER.info(
-                          String.format("Renamed file \"%s\" to \"%s\"", job.getFile().getName(),
-                              dest.getName()));
-                    } else {
-                      LOGGER.warning(
-                          String.format("Failed to rename file \"%s\" to \"%s\"", job.getFile(),
-                              dest));
-                    }
-                  }
-                }
-              });
-            }
-
-            importer.addJob(job);
-          }
-        }
-
-        saveSettings();
-        Platform.runLater(() -> {
-          ps.close();
-          close();
-        });
       }
     };
+
+    openAndStart(ps, ct);
+  }
+
+  private void openAndStart(ProgressScreen ps, CancellableThread ct) {
     ps.open(getManager(), "Finding files", "Finding valid files for import...", () -> {
       ct.cancel();
       close();
@@ -389,6 +324,94 @@ public class ImportDialogScreen extends Screen {
     ct.setName("Import File Finder");
     ct.setDaemon(true);
     ct.start();
+  }
+
+  private void addRenameToHashListener(ImportJob job, List<String> tagsToAdd, boolean renameToHash) {
+    job.addStatusListener((observable, oldValue, newValue) -> {
+      if (newValue == ImportJobStatus.SUCCEEDED) {
+        addTagsToJobItem(job, tagsToAdd);
+
+        // Rename to hash
+        if (renameToHash && job.getItem().getMD5() != null) {
+          renameJobItemToHash(job);
+        }
+      }
+    });
+  }
+
+  private void renameJobItemToHash(ImportJob job) {
+    File dest = new File(job.getFile().getParentFile(), job.getItem().getMD5() +
+        job.getFile().getName()
+            .substring(job.getFile()
+                .getName()
+                .lastIndexOf('.')));
+    if (job.getItem().moveFile(dest)) {
+      LOGGER.info(
+          String.format("Renamed file \"%s\" to \"%s\"", job.getFile().getName(),
+              dest.getName()));
+    } else {
+      LOGGER.warning(
+          String.format("Failed to rename file \"%s\" to \"%s\"", job.getFile(),
+              dest));
+    }
+  }
+
+  private void addTagsToJobItem(ImportJob job, List<String> tagsToAdd) {
+    // Add tags
+    for (String tagName : tagsToAdd) {
+      if (tagName.contains(" ")) {
+        tagName = tagName.replaceAll("\\s", "_"); // Replace all whitespace
+      }
+
+      if (!tagName.matches(Tag.NAME_REGEX)) {
+        continue;
+      }
+
+      Tag t = menagerie.getTagByName(tagName);
+      if (t == null) {
+        t = menagerie.createTag(tagName);
+      }
+      job.getItem().addTag(t);
+    }
+  }
+
+  private List<String> getTagsToAdd(File file) {
+    final List<String> tagsToAdd = new ArrayList<>();
+
+    if (tagWithParentCheckBox.isSelected()) {
+      tagsToAdd.add(file.getParentFile().getName().toLowerCase());
+    }
+    if (tagWithTagsCheckBox.isSelected() && tagWithTagsTextField.getText() != null &&
+        !tagWithTagsTextField.getText().isEmpty()) {
+      tagsToAdd.addAll(
+          Arrays.asList(tagWithTagsTextField.getText().toLowerCase().split("\\s")));
+    }
+    return tagsToAdd;
+  }
+
+  private GroupItem createGroup() {
+    GroupItem group = null;
+    if (createGroupCheckBox.isSelected() && !createGroupTextField.getText().isEmpty()) {
+      group = menagerie.createGroup(null, createGroupTextField.getText());
+      if (settings.tagTagme.getValue()) {
+        Tag t = menagerie.getTagByName("tagme");
+        if (t == null) {
+          t = menagerie.createTag("tagme");
+        }
+        group.addTag(t);
+      }
+    }
+    return group;
+  }
+
+  private void sortFiles() {
+    switch (orderChoiceBox.getValue()) {
+      case DATE_MODIFIED -> files.sort(Comparator.comparingLong(File::lastModified));
+      case ALPHABETICAL -> files.sort(new WindowsExplorerComparator());
+      default -> {
+        // nothing
+      }
+    }
   }
 
   public void setFolder(File folder) {
