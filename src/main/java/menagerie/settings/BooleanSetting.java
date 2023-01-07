@@ -31,6 +31,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class BooleanSetting extends Setting {
 
   private static final String VALUE_KEY = "value";
@@ -121,6 +123,9 @@ public class BooleanSetting extends Setting {
     return super.equals(obj) && obj instanceof BooleanSetting &&
            ((BooleanSetting) obj).getValue() == getValue();
   }
-  // TODO. override hashCode as well
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
 }

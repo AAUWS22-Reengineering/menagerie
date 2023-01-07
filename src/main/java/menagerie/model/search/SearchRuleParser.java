@@ -13,6 +13,9 @@ public abstract class SearchRuleParser {
 
   private static final Logger LOGGER = Logger.getLogger(Search.class.getName());
 
+  private SearchRuleParser() {
+  }
+
   public static List<SearchRule> parseRules(String search) {
     // this would be a test str"ing that doesn't tokenize the "quotes
     // This would be a test "string that DOES tokenize the quotes"
@@ -30,26 +33,30 @@ public abstract class SearchRuleParser {
         arg = arg.substring(1);
       }
 
-      if (arg.startsWith("id:")) {
-        parseIDRule(arg, rules, inverted);
-      } else if (arg.startsWith("date:") || arg.startsWith("time:")) {
-        parseDateRule(arg, rules, inverted);
-      } else if (arg.startsWith("path:") || arg.startsWith("file:")) {
-        parseFileRule(arg, rules, inverted);
-      } else if (arg.startsWith("missing:")) {
-        parseMissingRule(arg, rules, inverted);
-      } else if (arg.startsWith("type:") || arg.startsWith("is:")) {
-        parseTypeRule(arg, rules, inverted);
-      } else if (arg.startsWith("tags:")) {
-        parseTagsRule(arg, rules, inverted);
-      } else if (arg.startsWith("title:")) {
-        parseTitleRule(arg, rules, inverted);
-      } else {
-        rules.add(new TagRule(arg, inverted));
-      }
+      parseNextRule(rules, arg, inverted);
     }
 
     return rules;
+  }
+
+  private static void parseNextRule(List<SearchRule> rules, String arg, boolean inverted) {
+    if (arg.startsWith("id:")) {
+      parseIDRule(arg, rules, inverted);
+    } else if (arg.startsWith("date:") || arg.startsWith("time:")) {
+      parseDateRule(arg, rules, inverted);
+    } else if (arg.startsWith("path:") || arg.startsWith("file:")) {
+      parseFileRule(arg, rules, inverted);
+    } else if (arg.startsWith("missing:")) {
+      parseMissingRule(arg, rules, inverted);
+    } else if (arg.startsWith("type:") || arg.startsWith("is:")) {
+      parseTypeRule(arg, rules, inverted);
+    } else if (arg.startsWith("tags:")) {
+      parseTagsRule(arg, rules, inverted);
+    } else if (arg.startsWith("title:")) {
+      parseTitleRule(arg, rules, inverted);
+    } else {
+      rules.add(new TagRule(arg, inverted));
+    }
   }
 
   private static void parseIDRule(String arg, List<SearchRule> rules, boolean inverted) {
@@ -103,7 +110,7 @@ public abstract class SearchRuleParser {
   private static void parseTypeRule(String arg, List<SearchRule> rules, boolean inverted) {
     String type = arg.substring(arg.indexOf(':') + 1);
 
-    switch(type.toLowerCase()) {
+    switch (type.toLowerCase()) {
       case "group" -> rules.add(new TypeRule(TypeRule.Type.GROUP, inverted));
       case "media" -> rules.add(new TypeRule(TypeRule.Type.MEDIA, inverted));
       case "image" -> rules.add(new TypeRule(TypeRule.Type.IMAGE, inverted));
@@ -142,14 +149,13 @@ public abstract class SearchRuleParser {
     while (i < search.length()) {
       // Read a word
       int k = i + 1;
-      while (k < search.length() && !Character.isWhitespace(search.charAt(k))) {
+      while (isNextToken(search, k)) {
         if (search.charAt(k - 1) == ':' && search.charAt(k) == '"') {
           k++;
           while (k < search.length() && search.charAt(k) != '"') {
             k++;
           }
         }
-
         k++;
       }
 
@@ -161,5 +167,9 @@ public abstract class SearchRuleParser {
     }
 
     return tokens;
+  }
+
+  private static boolean isNextToken(String search, int k) {
+    return k < search.length() && !Character.isWhitespace(search.charAt(k));
   }
 }

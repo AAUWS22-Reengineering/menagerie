@@ -170,13 +170,80 @@ public class DynamicVideoView extends StackPane {
 
     getStyleClass().addAll(DEFAULT_STYLE_CLASS);
 
-    canvas.widthProperty().bind(widthProperty());
-    canvas.heightProperty().bind(heightProperty());
-    getChildren().add(canvas);
-    HBox bottomBarHBox = new HBox(5, durationLabel, slider, muteImageView);
-    bottomBarHBox.getStyleClass().addAll(CONTROLS_STYLE_CLASS);
-    bottomBarHBox.setAlignment(Pos.CENTER);
-    bottomBarHBox.setPadding(new Insets(3));
+    setupCanvas();
+    HBox bottomBarHBox = getHBox();
+    BorderPane controlsBorderPane = getControlsBorderPane();
+    getChildren().add(controlsBorderPane);
+
+    StackPane.setAlignment(pauseImageView, Pos.CENTER);
+    pixelWriter = canvas.getGraphicsContext2D().getPixelWriter();
+
+    setupMuteControls();
+
+    addEventHandler(MouseEvent.MOUSE_ENTERED, event -> controlsBorderPane.setBottom(bottomBarHBox));
+    addEventHandler(MouseEvent.MOUSE_EXITED, event -> controlsBorderPane.setBottom(null));
+    setupClickEventHandler();
+    setupScrollEventHandler();
+  }
+
+  private void setupClickEventHandler() {
+    addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+      if (event.getButton() == MouseButton.PRIMARY) {
+        if (isPlaying()) {
+          pause();
+        } else {
+          play();
+        }
+      } else if (event.getButton() == MouseButton.SECONDARY) {
+        setMute(!isMuted());
+      }
+      event.consume();
+    });
+  }
+
+  private void setupScrollEventHandler() {
+    addEventHandler(ScrollEvent.SCROLL, event -> {
+      if (!released && getMediaPlayer() != null) {
+        long duration = getMediaPlayer().media().info().duration();
+        float delta;
+        if (duration < 10000) {
+          delta = 0.25f;
+        } else if (duration < 30000) {
+          delta = 5000f / duration;
+        } else {
+          delta = 10000f / duration;
+        }
+        if (event.getDeltaY() < 0) {
+          delta = -delta;
+        }
+        float newPos = Math.min(0.9999f, Math.max(getMediaPlayer().status().position() + delta, 0));
+        getMediaPlayer().controls().setPosition(newPos);
+        slider.setValue(newPos);
+        event.consume();
+      }
+    });
+  }
+
+  private void setupMuteControls() {
+    muteImageView.setPickOnBounds(true);
+    muteImageView.addEventHandler(MouseEvent.MOUSE_ENTERED,
+        event -> getScene().setCursor(Cursor.HAND));
+    muteImageView.addEventHandler(MouseEvent.MOUSE_EXITED,
+        event -> getScene().setCursor(Cursor.DEFAULT));
+    muteImageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+      setMute(!isMuted());
+      event.consume();
+    });
+
+    mute.addListener((observable, oldValue, newValue) -> {
+      if (!released && getMediaPlayer() != null) {
+        getMediaPlayer().audio().setMute(newValue);
+      }
+      muteImageView.setImage(newValue ? muteImage : unmuteImage);
+    });
+  }
+
+  private BorderPane getControlsBorderPane() {
     BorderPane controlsBorderPane = new BorderPane(null, null, null, null, null);
     HBox.setHgrow(slider, Priority.ALWAYS);
     slider.setFocusTraversable(false);
@@ -199,61 +266,21 @@ public class DynamicVideoView extends StackPane {
     });
     controlsBorderPane.setPadding(new Insets(5));
     BorderPane.setAlignment(muteImageView, Pos.BOTTOM_RIGHT);
-    getChildren().add(controlsBorderPane);
-    StackPane.setAlignment(pauseImageView, Pos.CENTER);
-    pixelWriter = canvas.getGraphicsContext2D().getPixelWriter();
+    return controlsBorderPane;
+  }
 
-    muteImageView.setPickOnBounds(true);
-    muteImageView.addEventHandler(MouseEvent.MOUSE_ENTERED,
-        event -> getScene().setCursor(Cursor.HAND));
-    muteImageView.addEventHandler(MouseEvent.MOUSE_EXITED,
-        event -> getScene().setCursor(Cursor.DEFAULT));
-    muteImageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-      setMute(!isMuted());
-      event.consume();
-    });
+  private HBox getHBox() {
+    HBox bottomBarHBox = new HBox(5, durationLabel, slider, muteImageView);
+    bottomBarHBox.getStyleClass().addAll(CONTROLS_STYLE_CLASS);
+    bottomBarHBox.setAlignment(Pos.CENTER);
+    bottomBarHBox.setPadding(new Insets(3));
+    return bottomBarHBox;
+  }
 
-    mute.addListener((observable, oldValue, newValue) -> {
-      if (!released && getMediaPlayer() != null) {
-        getMediaPlayer().audio().setMute(newValue);
-      }
-      muteImageView.setImage(newValue ? muteImage : unmuteImage);
-    });
-
-    addEventHandler(MouseEvent.MOUSE_ENTERED, event -> controlsBorderPane.setBottom(bottomBarHBox));
-    addEventHandler(MouseEvent.MOUSE_EXITED, event -> controlsBorderPane.setBottom(null));
-    addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-      if (event.getButton() == MouseButton.PRIMARY) {
-        if (isPlaying()) {
-          pause();
-        } else {
-          play();
-        }
-      } else if (event.getButton() == MouseButton.SECONDARY) {
-        setMute(!isMuted());
-      }
-      event.consume();
-    });
-    addEventHandler(ScrollEvent.SCROLL, event -> {
-      if (!released && getMediaPlayer() != null) {
-        long duration = getMediaPlayer().media().info().duration();
-        float delta;
-        if (duration < 10000) {
-          delta = 0.25f;
-        } else if (duration < 30000) {
-          delta = 5000f / duration;
-        } else {
-          delta = 10000f / duration;
-        }
-        if (event.getDeltaY() < 0) {
-          delta = -delta;
-        }
-        float newPos = Math.min(0.9999f, Math.max(getMediaPlayer().status().position() + delta, 0));
-        getMediaPlayer().controls().setPosition(newPos);
-        slider.setValue(newPos);
-        event.consume();
-      }
-    });
+  private void setupCanvas() {
+    canvas.widthProperty().bind(widthProperty());
+    canvas.heightProperty().bind(heightProperty());
+    getChildren().add(canvas);
   }
 
   /**
@@ -333,8 +360,9 @@ public class DynamicVideoView extends StackPane {
    * @param b Repeat
    */
   public void setRepeat(boolean b) {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().setRepeat(b);
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().setRepeat(b);
     }
   }
 
@@ -342,14 +370,16 @@ public class DynamicVideoView extends StackPane {
    * @return True if the video is currently playing
    */
   public boolean isPlaying() {
-    return !released && getMediaPlayer() != null && getMediaPlayer().status().isPlaying();
+    MediaPlayer player = getMediaPlayer();
+    return !released && player != null && player.status().isPlaying();
   }
 
   /**
    * @return True if the video will repeat on completion
    */
   public boolean isRepeating() {
-    return !released && getMediaPlayer() != null && getMediaPlayer().controls().getRepeat();
+    MediaPlayer player = getMediaPlayer();
+    return !released && player != null && player.controls().getRepeat();
   }
 
   /**
@@ -363,8 +393,9 @@ public class DynamicVideoView extends StackPane {
    * Pauses the video without resetting it
    */
   public void pause() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().pause();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().pause();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -376,8 +407,9 @@ public class DynamicVideoView extends StackPane {
    * Plays the video from the current position
    */
   public void play() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().play();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().play();
       if (!timer.getState().equals(Worker.State.READY)) {
         timer = new NanoTimer(TIMER_PERIOD) {
           @Override
@@ -395,8 +427,9 @@ public class DynamicVideoView extends StackPane {
    * Stops the video and resets it to the start of the video
    */
   public void stop() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().stop();
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.controls().stop();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -410,8 +443,9 @@ public class DynamicVideoView extends StackPane {
    * @param path Path to video file
    */
   public void startMedia(String path) {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().media().start(path);
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
+      player.media().start(path);
       play();
     }
   }
@@ -420,12 +454,13 @@ public class DynamicVideoView extends StackPane {
    * Releases all VLCJ components and renders this object invalid
    */
   public void releaseVLCJ() {
-    if (!released && getMediaPlayer() != null) {
+    MediaPlayer player = getMediaPlayer();
+    if (!released && player != null) {
       if (mediaPlayerComponent != null) {
         mediaPlayerComponent.mediaPlayerFactory().release();
       }
-      getMediaPlayer().controls().stop();
-      getMediaPlayer().release();
+      player.controls().stop();
+      player.release();
       released = true;
     }
   }
@@ -463,6 +498,7 @@ public class DynamicVideoView extends StackPane {
             nativeBuffers[0], bufferFormat.getPitches()[0]);
         semaphore.release();
       } catch (InterruptedException ignore) {
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -475,9 +511,6 @@ public class DynamicVideoView extends StackPane {
 
     double width = canvas.getWidth();
     double height = canvas.getHeight();
-
-    //        g.setFill(new Color(0, 0, 0, 1));
-    //        g.fillRect(0, 0, width, height);
 
     if (img != null) {
       double imageWidth = img.getWidth();
@@ -504,6 +537,7 @@ public class DynamicVideoView extends StackPane {
         g.drawImage(img, 0, 0);
         semaphore.release();
       } catch (InterruptedException ignore) {
+        Thread.currentThread().interrupt();
       }
 
       g.setTransform(ax);

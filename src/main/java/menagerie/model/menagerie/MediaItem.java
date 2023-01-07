@@ -179,6 +179,7 @@ public class MediaItem extends Item {
       try {
         latch.await();
       } catch (InterruptedException ignored) {
+        Thread.currentThread().interrupt();
       }
 
       if (img.isError()) {

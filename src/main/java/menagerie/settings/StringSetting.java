@@ -36,6 +36,8 @@ import javafx.scene.layout.Priority;
 import menagerie.util.Util;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class StringSetting extends Setting {
 
   private static final String VALUE_KEY = "value";
@@ -132,6 +134,9 @@ public class StringSetting extends Setting {
     return super.equals(obj) && obj instanceof StringSetting &&
            Util.equalsNullable(((StringSetting) obj).getValue(), getValue());
   }
-  // TODO. override hashCode as well
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), value);
+  }
 }

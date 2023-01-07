@@ -48,9 +48,11 @@ public class LoggerHandler extends Handler {
 
   @Override
   public void flush() {
+    // unused
   }
 
   @Override
   public void close() throws SecurityException {
+    // unused
   }
 }

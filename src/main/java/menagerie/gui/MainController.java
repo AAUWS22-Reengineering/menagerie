@@ -52,12 +52,9 @@ import menagerie.duplicates.DuplicateFinder;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.handler.*;
-import menagerie.model.menagerie.importer.LocalImportJob;
-import menagerie.model.menagerie.importer.WebImportJob;
-import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+import menagerie.gui.itemhandler.Items;
 import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
 import menagerie.gui.itemhandler.opener.ItemOpener;
-import menagerie.gui.itemhandler.Items;
 import menagerie.gui.itemhandler.preview.ItemPreview;
 import menagerie.gui.itemhandler.rename.ItemRenamer;
 import menagerie.gui.media.DynamicMediaView;
@@ -83,6 +80,9 @@ import menagerie.model.menagerie.*;
 import menagerie.model.menagerie.db.DatabaseUtil;
 import menagerie.model.menagerie.importer.ImportJob;
 import menagerie.model.menagerie.importer.ImporterThread;
+import menagerie.model.menagerie.importer.LocalImportJob;
+import menagerie.model.menagerie.importer.WebImportJob;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.search.GroupSearch;
 import menagerie.model.search.Search;
 import menagerie.model.search.SearchHistory;
@@ -879,64 +879,68 @@ public class MainController {
 
     ContextMenu cm = new ContextMenu();
 
-    int groupCount = 0, mediaCount = 0, itemsInGroupCount = 0;
-    for (Item item : selected) {
-      Optional<ItemProperties> itemProps = Items.get(ItemProperties.class, item);
-      if (itemProps.isPresent()) {
-        groupCount += itemProps.get().isGroup(item) ? 1 : 0;
-        mediaCount += itemProps.get().isMedia(item) ? 1 : 0;
-        itemsInGroupCount += itemProps.get().isInGroup(item) ? 1 : 0;
-      }
-    }
+    // get item counts
+    int[] itemCounts = ItemUtil.getPropertyCounts(selected);
+    int groupCount = itemCounts[0];
+    int mediaCount = itemCounts[1];
+    int itemsInGroupCount = itemCounts[2];
 
     if (groupCount == 1 && selected.size() == 1) {
-      singleGroupCount(selected, cm);
+      populateContextMenuSingleGroupCount(selected, cm);
     }
     if (groupCount > 1 || mediaCount > 0) {
-      combineGroups(selected, cm);
+      populateContextMenuCombineGroups(selected, cm);
     }
     if (itemsInGroupCount > 0) {
-      ItemUtil.removeFromGroup(selected, cm);
+      ItemUtil.populateContextMenuRemoveFromGroup(selected, cm);
     }
 
     if (groupCount > 0 || mediaCount > 0) {
-      MenuItem grabbed = new MenuItem("Selected");
-      grabbed.setOnAction(event -> openSlideShow(selected, false));
-      MenuItem searched = new MenuItem("Searched");
-      searched.setOnAction(event -> openSlideShow(currentSearch.getResults(), true));
-      MenuItem all = new MenuItem("All");
-      all.setOnAction(event -> openSlideShow(menagerie.getItems(), true));
-      Menu slideshow = new Menu("Slideshow...", null, grabbed, searched, all);
-
-      MenuItem moveFiles = new MenuItem("Move Files");
-      moveFiles.setOnAction(event -> moveFilesScreen.open(screenPane, selected));
-
-      MenuItem findOnline = new MenuItem("Online");
-      findOnline.setOnAction(event -> findOnlineDialog(selected));
-      MenuItem findDupes = new MenuItem("Duplicates");
-      findDupes.setOnAction(event -> duplicateOptionsScreen.open(screenPane, menagerie, selected,
-          currentSearch.getResults(), menagerie.getItems()));
-      Menu find = new Menu("Find...", null, findOnline, findDupes);
-
-      cm.getItems().addAll(find, slideshow, moveFiles);
+      populateContextMenuGroupOrMedia(selected, cm);
     }
 
     if (mediaCount > 0) {
-      MenuItem openDefault = new MenuItem("Open");
-      openDefault.setOnAction(event -> FileExplorer.openDefault(selected));
-      MenuItem explorer = new MenuItem("Open in Explorer");
-      explorer.setOnAction(event -> FileExplorer.openExplorer(selected));
-      cm.getItems().addAll(openDefault, explorer);
+      populateContextMenuMedia(selected, cm);
     }
 
     if (groupCount > 0 || mediaCount > 0) {
-      ungroup(selected, cm, groupCount);
+      populateContextMenuUngroup(selected, cm, groupCount);
     }
 
     return cm;
   }
 
-  private void ungroup(List<Item> selected, ContextMenu cm, int groupCount) {
+  private void populateContextMenuMedia(List<Item> selected, ContextMenu cm) {
+    MenuItem openDefault = new MenuItem("Open");
+    openDefault.setOnAction(event -> FileExplorer.openDefault(selected));
+    MenuItem explorer = new MenuItem("Open in Explorer");
+    explorer.setOnAction(event -> FileExplorer.openExplorer(selected));
+    cm.getItems().addAll(openDefault, explorer);
+  }
+
+  private void populateContextMenuGroupOrMedia(List<Item> selected, ContextMenu cm) {
+    MenuItem grabbed = new MenuItem("Selected");
+    grabbed.setOnAction(event -> openSlideShow(selected, false));
+    MenuItem searched = new MenuItem("Searched");
+    searched.setOnAction(event -> openSlideShow(currentSearch.getResults(), true));
+    MenuItem all = new MenuItem("All");
+    all.setOnAction(event -> openSlideShow(menagerie.getItems(), true));
+    Menu slideshow = new Menu("Slideshow...", null, grabbed, searched, all);
+
+    MenuItem moveFiles = new MenuItem("Move Files");
+    moveFiles.setOnAction(event -> moveFilesScreen.open(screenPane, selected));
+
+    MenuItem findOnline = new MenuItem("Online");
+    findOnline.setOnAction(event -> findOnlineDialog(selected));
+    MenuItem findDupes = new MenuItem("Duplicates");
+    findDupes.setOnAction(event -> duplicateOptionsScreen.open(screenPane, menagerie, selected,
+        currentSearch.getResults(), menagerie.getItems()));
+    Menu find = new Menu("Find...", null, findOnline, findDupes);
+
+    cm.getItems().addAll(find, slideshow, moveFiles);
+  }
+
+  private void populateContextMenuUngroup(List<Item> selected, ContextMenu cm, int groupCount) {
     cm.getItems().add(new SeparatorMenuItem());
     if (groupCount > 0) {
       MenuItem ungroup = new MenuItem("Ungroup");
@@ -952,13 +956,13 @@ public class MainController {
     cm.getItems().addAll(forget, delete);
   }
 
-  private void combineGroups(List<Item> selected, ContextMenu cm) {
+  private void populateContextMenuCombineGroups(List<Item> selected, ContextMenu cm) {
     MenuItem combineGroups = new MenuItem("Combine into Group");
     combineGroups.setOnAction(event -> groupDialog(selected));
     cm.getItems().add(combineGroups);
   }
 
-  private void singleGroupCount(List<Item> selected, ContextMenu cm) {
+  private void populateContextMenuSingleGroupCount(List<Item> selected, ContextMenu cm) {
     MenuItem elementTags = new MenuItem("Sync element tags to group");
     elementTags.setOnAction(event -> {
       GroupItem group = (GroupItem) selected.get(0);
@@ -1030,7 +1034,10 @@ public class MainController {
     ItemUtil.addGroupElements(items);
     stopPreview(items);
     new ConfirmationScreen().open(screenPane, "Forget files", String.format(
-        "Remove selected files from database? (%d files)\n\n" + "This action CANNOT be undone",
+        """
+            Remove selected files from database? (%d files)
+
+            This action CANNOT be undone""",
         items.size()), () -> menagerie.forgetItems(items), null);
   }
 
@@ -1241,8 +1248,6 @@ public class MainController {
     }
   }
 
-  // REENG: still too big
-
   /**
    * Actual workhorse tag editing method. Parses tag edit string, makes changes, and verifies changed items against the search.
    *
@@ -1256,32 +1261,40 @@ public class MainController {
     final var inputTokens = input.split("\\s+");
     for (String token : inputTokens) {
       if (token.startsWith("-")) {
-        Tag t = menagerie.getTagByName(token.substring(1));
-        if (t != null) {
-          for (Item item : itemGridView.getSelected()) {
-            if (item.removeTag(t)) {
-              changed.add(item);
-              removed.computeIfAbsent(item, k -> new ArrayList<>()).add(t);
-            }
-          }
-        }
+        findChangedItemsAndRemovedTags(changed, removed, token);
       } else {
-        Tag t = menagerie.getTagByName(token);
-        if (t == null) {
-          t = menagerie.createTag(token);
-        }
-        for (Item item : itemGridView.getSelected()) {
-          if (item.addTag(t)) {
-            changed.add(item);
-            added.computeIfAbsent(item, k -> new ArrayList<>()).add(t);
-          }
-        }
+        findChangedItemsAndAddedTags(changed, added, token);
       }
     }
 
     if (!changed.isEmpty()) {
       menagerie.refreshInSearches(changed);
       tagEditHistory.push(new TagEditEvent(added, removed));
+    }
+  }
+
+  private void findChangedItemsAndAddedTags(List<Item> changed, Map<Item, List<Tag>> added, String token) {
+    Tag t = menagerie.getTagByName(token);
+    if (t == null) {
+      t = menagerie.createTag(token);
+    }
+    for (Item item : itemGridView.getSelected()) {
+      if (item.addTag(t)) {
+        changed.add(item);
+        added.computeIfAbsent(item, k -> new ArrayList<>()).add(t);
+      }
+    }
+  }
+
+  private void findChangedItemsAndRemovedTags(List<Item> changed, Map<Item, List<Tag>> removed, String token) {
+    Tag t = menagerie.getTagByName(token.substring(1));
+    if (t != null) {
+      for (Item item : itemGridView.getSelected()) {
+        if (item.removeTag(t)) {
+          changed.add(item);
+          removed.computeIfAbsent(item, k -> new ArrayList<>()).add(t);
+        }
+      }
     }
   }
 
@@ -1469,7 +1482,6 @@ public class MainController {
 
   // -------------------------------- Misc Event Handlers --------------------------------
 
-  // REENG: reduce complexity
   private void explorerRootPaneOnDragDropped(DragEvent event) {
     List<File> files = event.getDragboard().getFiles();
     String url = event.getDragboard().getUrl();
@@ -1477,48 +1489,66 @@ public class MainController {
     rootPane.getScene().getWindow().requestFocus();
 
     if (files != null && !files.isEmpty()) {
-      for (File file : files) {
-        if (files.size() == 1 && file.isDirectory()) {
-          screenPane.open(importDialogScreen);
-          importDialogScreen.setGroupName(file.getName());
-          importDialogScreen.setFolder(file);
-        } else if (Filters.FILE_NAME_FILTER.accept(file)) {
-          importer.addJob(new LocalImportJob(file, null));
-        }
-      }
-    } else if (url != null && !url.isEmpty()) {
-      try {
-        String folder = settings.defaultFolder.getValue();
-        String filename = new URL(url).getPath().replaceAll("^.*/", "");
-        File target;
-        if (!settings.urlFilename.getValue() || folder == null || folder.isEmpty() ||
-            !Files.isDirectory(Paths.get(folder))) {
-          do {
-            FileChooser fc = new FileChooser();
-            fc.setTitle("Save as");
-            fc.setSelectedExtensionFilter(Filters.getExtensionFilter());
-            if (folder != null && !folder.isEmpty()) {
-              fc.setInitialDirectory(new File(folder));
-            }
-            fc.setInitialFileName(filename);
-
-            target = fc.showSaveDialog(rootPane.getScene().getWindow());
-
-            if (target == null) {
-              return;
-            }
-          } while (target.exists() || !target.getParentFile().exists());
-        } else {
-          target = FileUtil.resolveDuplicateFilename(new File(folder, filename));
-        }
-        if (Filters.FILE_NAME_FILTER.accept(target)) {
-          importer.addJob(new WebImportJob(new URL(url), target, null));
-        }
-      } catch (MalformedURLException e) {
-        LOGGER.log(Level.WARNING, "File dragged from web has bad URL", e);
-      }
+      importFiles(files);
+    } else if (url != null && !url.isEmpty() && importFromURL(url)) {
+      return;
     }
     event.consume();
+  }
+
+  private boolean importFromURL(String url) {
+    try {
+      String folder = settings.defaultFolder.getValue();
+      String filename = new URL(url).getPath().replaceAll("^.*/", "");
+      File target;
+      if (!settings.urlFilename.getValue() || folder == null || folder.isEmpty() ||
+          !Files.isDirectory(Paths.get(folder))) {
+        do {
+          target = showDownloadToDialog(folder, filename);
+          if (target == null) {
+            return true;
+          }
+        } while (target.exists() || !target.getParentFile().exists());
+      } else {
+        target = FileUtil.resolveDuplicateFilename(new File(folder, filename));
+      }
+      if (Filters.FILE_NAME_FILTER.accept(target)) {
+        importer.addJob(new WebImportJob(new URL(url), target, null));
+      }
+    } catch (MalformedURLException e) {
+      LOGGER.log(Level.WARNING, "File dragged from web has bad URL", e);
+    }
+    return false;
+  }
+
+  private File showDownloadToDialog(String folder, String filename) {
+    File target;
+    FileChooser fc = new FileChooser();
+    fc.setTitle("Save as");
+    fc.setSelectedExtensionFilter(Filters.getExtensionFilter());
+    if (folder != null && !folder.isEmpty()) {
+      fc.setInitialDirectory(new File(folder));
+    }
+    fc.setInitialFileName(filename);
+
+    target = fc.showSaveDialog(rootPane.getScene().getWindow());
+
+    if (target == null) {
+      return null;
+    }
+    return target;
+  }
+
+  private void importFiles(List<File> files) {
+    for (File file : files) {
+      if (files.size() == 1 && file.isDirectory()) {
+        screenPane.open(importDialogScreen);
+        importDialogScreen.setGroupName(file.getName());
+        importDialogScreen.setFolder(file);
+      } else if (Filters.FILE_NAME_FILTER.accept(file)) {
+        importer.addJob(new LocalImportJob(file, null));
+      }
+    }
   }
 
   private void explorerRootPaneOnDragOver(DragEvent event) {
@@ -1563,6 +1593,9 @@ public class MainController {
       case BACK_SPACE:
         explorerGoBack();
         event.consume();
+        break;
+      default:
+        // nothing
         break;
     }
 
@@ -1715,6 +1748,7 @@ public class MainController {
         event.consume();
       }
       default -> {
+        // nothing
       }
     }
   }
@@ -1735,6 +1769,7 @@ public class MainController {
           shuffledSearchButton.setSelected(!shuffledSearchButton.isSelected());
           event.consume();
         }
+        default -> {/* nothing */}
       }
     }
   }

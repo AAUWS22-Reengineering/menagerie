@@ -25,15 +25,11 @@
 package menagerie.model.menagerie.db;
 
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import menagerie.model.menagerie.Tag;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-import menagerie.model.menagerie.Tag;
 
 /**
  * Utility class for initializing and upgrading the Menagerie database.
@@ -84,56 +80,60 @@ public class DatabaseVersionUpdater {
       version = initializeTables(db);
     }
     if (version == 0) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV0ToV1(db);
       version++;
     }
     if (version == 1) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV1ToV2(db);
       version++;
     }
     if (version == 2) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV2ToV3(db);
       version++;
     }
     if (version == 3) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV3ToV4(db);
       version++;
     }
     if (version == 4) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV4ToV5(db);
       version++;
     }
     if (version == 5) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV5ToV6(db);
       version++;
     }
     if (version == 6) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV6ToV7(db);
       version++;
     }
     if (version == 7) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV7ToV8(db);
       version++;
     }
     if (version == 8) {
       LOGGER.info("Database is up to date");
     }
+  }
+
+  private static void logUpdateWarning(int oldVersion) {
+    LOGGER.warning("!!! Database needs to update from v" + oldVersion + " to v" + (oldVersion + 1) + " !!!");
+  }
+
+  private static void logUpdateTime(double updateTime) {
+    LOGGER.info("Finished updating database in: " + updateTime + "s");
+  }
+
+  private static void logSettingDatabaseVersion() {
+    LOGGER.info("Setting database version");
   }
 
   /**
@@ -220,88 +220,87 @@ public class DatabaseVersionUpdater {
 
     long t = System.currentTimeMillis();
 
-    Statement s = db.createStatement();
+    try (Statement s = db.createStatement()) {
 
-    //------------------------ Set version in schema ---------------------------------------------------------------
+      //------------------------ Set version in schema ---------------------------------------------------------------
 
-    LOGGER.info("Updating database version");
-    s.executeUpdate("CREATE TABLE version(version INT NOT NULL PRIMARY KEY);");
-    s.executeUpdate("INSERT INTO version(version) VALUES (1);");
+      LOGGER.info("Updating database version");
+      s.executeUpdate("CREATE TABLE version(version INT NOT NULL PRIMARY KEY);");
+      s.executeUpdate("INSERT INTO version(version) VALUES (1);");
 
-    //---------------------------- Add columns ---------------------------------------------------------------------
+      //---------------------------- Add columns ---------------------------------------------------------------------
 
-    LOGGER.info("Modifying database columns");
-    s.executeUpdate("ALTER TABLE imgs ADD md5 NVARCHAR(32)");
-    s.executeUpdate("ALTER TABLE imgs ADD thumbnail BLOB;");
-    s.executeUpdate("ALTER TABLE imgs ADD histogram OBJECT;");
+      LOGGER.info("Modifying database columns");
+      s.executeUpdate("ALTER TABLE imgs ADD md5 NVARCHAR(32)");
+      s.executeUpdate("ALTER TABLE imgs ADD thumbnail BLOB;");
+      s.executeUpdate("ALTER TABLE imgs ADD histogram OBJECT;");
 
-    //--------------------------------- Rename columns -------------------------------------------------------------
+      //--------------------------------- Rename columns -------------------------------------------------------------
 
-    LOGGER.info("Renaming database columns");
-    s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_id TO id;");
-    s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_path TO path;");
-    s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_added TO added;");
+      LOGGER.info("Renaming database columns");
+      s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_id TO id;");
+      s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_path TO path;");
+      s.executeUpdate("ALTER TABLE imgs RENAME COLUMN img_added TO added;");
 
-    //------------------------- Create tagging tables --------------------------------------------------------------
+      //------------------------- Create tagging tables --------------------------------------------------------------
 
-    LOGGER.info("Creating tagging tables");
-    s.executeUpdate(CREATE_TAGS_TABLE_V1);
-    s.executeUpdate(CREATE_TAGGED_TABLE_V1);
+      LOGGER.info("Creating tagging tables");
+      s.executeUpdate(CREATE_TAGS_TABLE_V1);
+      s.executeUpdate(CREATE_TAGGED_TABLE_V1);
 
-    //------------------------------ Convert tags ------------------------------------------------------------------
+      //------------------------------ Convert tags ------------------------------------------------------------------
 
-    LOGGER.info("Converting database tags format");
-    PreparedStatement s_createTag = db.prepareStatement("INSERT INTO tags(name) VALUES (?);");
-    PreparedStatement s_getTagID =
-        db.prepareStatement("SELECT tags.id FROM tags WHERE tags.name=?;");
-    PreparedStatement tagImage = db.prepareStatement("INSERT INTO tagged VALUES (?, ?);");
-    ResultSet rs_img = s.executeQuery("SELECT * FROM imgs;");
+      LOGGER.info("Converting database tags format");
+      try (PreparedStatement s_createTag = db.prepareStatement("INSERT INTO tags(name) VALUES (?);");
+           PreparedStatement s_getTagID = db.prepareStatement("SELECT tags.id FROM tags WHERE tags.name=?;");
+           PreparedStatement tagImage = db.prepareStatement("INSERT INTO tagged VALUES (?, ?);")) {
 
-    final ArrayList<Tag> tags = new ArrayList<>();
-    while (rs_img.next()) {
-      String tagString = rs_img.getNString("img_tags");
+        ResultSet rs_img = s.executeQuery("SELECT * FROM imgs;");
 
-      for (String tagName : tagString.trim().split(" ")) {
-        Tag tag = getTagByName(tags, tagName);
+        final ArrayList<Tag> tags = new ArrayList<>();
+        while (rs_img.next()) {
+          String tagString = rs_img.getNString("img_tags");
 
-        if (tag == null) {
-          s_createTag.setNString(1, tagName);
-          s_createTag.executeUpdate();
-          s_getTagID.setNString(1, tagName);
-          ResultSet rs_tag = s_getTagID.executeQuery();
-          rs_tag.next();
-          tag = new Tag(null, rs_tag.getInt("tags.id"), tagName, null);
-          tags.add(tag);
-        }
+          for (String tagName : tagString.trim().split(" ")) {
+            Tag tag = getTagByName(tags, tagName);
 
-        tagImage.setInt(1, rs_img.getInt("id"));
-        tagImage.setInt(2, tag.getId());
-        try {
-          tagImage.executeUpdate();
-        } catch (SQLException e) {
-          //Image is already tagged with this tag
+            if (tag == null) {
+              s_createTag.setNString(1, tagName);
+              s_createTag.executeUpdate();
+              s_getTagID.setNString(1, tagName);
+              ResultSet rs_tag = s_getTagID.executeQuery();
+              rs_tag.next();
+              tag = new Tag(null, rs_tag.getInt("tags.id"), tagName, null);
+              tags.add(tag);
+            }
+
+            tagImage.setInt(1, rs_img.getInt("id"));
+            tagImage.setInt(2, tag.getId());
+            try {
+              tagImage.executeUpdate();
+            } catch (SQLException e) {
+              //Image is already tagged with this tag
+            }
+          }
         }
       }
+
+      //--------------------------------- Remove columns -------------------------------------------------------------
+
+      LOGGER.info("Removing database columns");
+      //Guaranteed
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN img_tags;");
+      //Possible
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_alpha;");
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_red;");
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_green;");
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_blue;");
+      s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_src;");
+
+      //------------------------------------ Done Updating -----------------------------------------------------------
     }
 
-    //--------------------------------- Remove columns -------------------------------------------------------------
-
-    LOGGER.info("Removing database columns");
-    //Guaranteed
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN img_tags;");
-    //Possible
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_alpha;");
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_red;");
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_green;");
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_hist_blue;");
-    s.executeUpdate("ALTER TABLE imgs DROP COLUMN IF EXISTS img_src;");
-
-    //------------------------------------ Done Updating -----------------------------------------------------------
-
-    s.close();
-
-    LOGGER.info(
-        "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+    logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
 
   }
 
@@ -319,15 +318,14 @@ public class DatabaseVersionUpdater {
       //Update histogram storage
       s.executeUpdate(
           "ALTER TABLE imgs DROP COLUMN histogram;" + "ALTER TABLE imgs ADD COLUMN hist_a BLOB;" +
-          "ALTER TABLE imgs ADD COLUMN hist_r BLOB;" + "ALTER TABLE imgs ADD COLUMN hist_g BLOB;" +
-          "ALTER TABLE imgs ADD COLUMN hist_b BLOB;");
+              "ALTER TABLE imgs ADD COLUMN hist_r BLOB;" + "ALTER TABLE imgs ADD COLUMN hist_g BLOB;" +
+              "ALTER TABLE imgs ADD COLUMN hist_b BLOB;");
 
       LOGGER.info("Updating database version");
       //Update version table
       s.executeUpdate("INSERT INTO version(version) VALUES (2);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -365,11 +363,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate(
           "ALTER TABLE media ADD FOREIGN KEY (gid) REFERENCES groups(id) ON DELETE SET NULL;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (3);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -386,11 +383,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Adding 'color' column to 'tags' table");
       s.executeUpdate("ALTER TABLE tags ADD COLUMN color NVARCHAR(32);");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (4)");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -404,11 +400,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate("DROP TABLE tag_notes;");
       s.executeUpdate("ALTER TABLE tag_notes2 RENAME TO tag_notes;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (5);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -419,11 +414,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Adding 'no_similar' column to 'media'");
       s.executeUpdate("ALTER TABLE media ADD COLUMN no_similar BOOL NOT NULL DEFAULT FALSE;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (6);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -434,11 +428,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Dropping thumbnail column from media");
       s.executeUpdate("ALTER TABLE media DROP COLUMN thumbnail;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (7);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -450,11 +443,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate(
           "CREATE TABLE non_dupes(item_1 INT, item_2 INT, FOREIGN KEY (item_1) REFERENCES items(id) ON DELETE CASCADE, FOREIGN KEY (item_2) REFERENCES items(id) ON DELETE CASCADE);");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (8);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -493,75 +485,81 @@ public class DatabaseVersionUpdater {
   public static void main(String[] args) throws SQLException {
     // Copies all data into new database
 
-    Connection db1 = DriverManager.getConnection("jdbc:h2:~/test-purge", "sa", "");
-    Connection db2 = DriverManager.getConnection("jdbc:h2:~/test-purge-new", "sa", "");
+    try (Connection db1 = DriverManager.getConnection("jdbc:h2:~/test-purge", "sa", "");
+         Connection db2 = DriverManager.getConnection("jdbc:h2:~/test-purge-new", "sa", "");
 
-    Statement s1 = db1.createStatement();
-    Statement s2 = db2.createStatement();
+         Statement s1 = db1.createStatement();
+         Statement s2 = db2.createStatement();) {
 
-    updateDatabase(db2);
+      updateDatabase(db2);
 
-    ResultSet rs = s1.executeQuery("SELECT * FROM tags;");
-    PreparedStatement ps = db2.prepareStatement("INSERT INTO tags VALUES (?, ?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt(1));
-      ps.setNString(2, rs.getNString(2));
-      ps.setNString(3, rs.getNString(3));
-      ps.executeUpdate();
+      ResultSet rs = s1.executeQuery("SELECT * FROM tags;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO tags VALUES (?, ?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt(1));
+          ps.setNString(2, rs.getNString(2));
+          ps.setNString(3, rs.getNString(3));
+          ps.executeUpdate();
+        }
+      }
+
+      rs = s1.executeQuery("SELECT * FROM tag_notes;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO tag_notes VALUES (?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt(1));
+          ps.setNString(2, rs.getNString(2));
+          ps.executeUpdate();
+        }
+      }
+
+      rs = s1.executeQuery("SELECT * FROM items;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO items VALUES (?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt(1));
+          ps.setLong(2, rs.getLong(2));
+          ps.executeUpdate();
+        }
+      }
+
+      rs = s1.executeQuery("SELECT * FROM groups;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO groups VALUES (?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt(1));
+          ps.setNString(2, rs.getNString(2));
+          ps.executeUpdate();
+        }
+      }
+
+      rs = s1.executeQuery("SELECT * FROM media;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt("id"));
+          ps.setObject(2, rs.getObject("gid"));
+          ps.setNString(3, rs.getNString("path"));
+          ps.setNString(4, rs.getNString("md5"));
+          ps.setBinaryStream(5, rs.getBinaryStream("thumbnail"));
+          ps.setBinaryStream(6, rs.getBinaryStream("hist_a"));
+          ps.setBinaryStream(7, rs.getBinaryStream("hist_r"));
+          ps.setBinaryStream(8, rs.getBinaryStream("hist_g"));
+          ps.setBinaryStream(9, rs.getBinaryStream("hist_b"));
+          ps.setInt(10, rs.getInt("page"));
+          ps.setBoolean(11, rs.getBoolean("no_similar"));
+          ps.executeUpdate();
+        }
+      }
+
+      rs = s1.executeQuery("SELECT * FROM tagged;");
+      try (PreparedStatement ps = db2.prepareStatement("INSERT INTO tagged VALUES (?, ?);")) {
+        while (rs.next()) {
+          ps.setInt(1, rs.getInt(1));
+          ps.setInt(2, rs.getInt(2));
+          ps.executeUpdate();
+        }
+      }
+
+      s1.executeUpdate("SHUTDOWN DEFRAG;");
+      s2.executeUpdate("SHUTDOWN DEFRAG;");
     }
-
-    rs = s1.executeQuery("SELECT * FROM tag_notes;");
-    ps = db2.prepareStatement("INSERT INTO tag_notes VALUES (?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt(1));
-      ps.setNString(2, rs.getNString(2));
-      ps.executeUpdate();
-    }
-
-    rs = s1.executeQuery("SELECT * FROM items;");
-    ps = db2.prepareStatement("INSERT INTO items VALUES (?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt(1));
-      ps.setLong(2, rs.getLong(2));
-      ps.executeUpdate();
-    }
-
-    rs = s1.executeQuery("SELECT * FROM groups;");
-    ps = db2.prepareStatement("INSERT INTO groups VALUES (?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt(1));
-      ps.setNString(2, rs.getNString(2));
-      ps.executeUpdate();
-    }
-
-    rs = s1.executeQuery("SELECT * FROM media;");
-    ps = db2.prepareStatement("INSERT INTO media VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt("id"));
-      ps.setObject(2, rs.getObject("gid"));
-      ps.setNString(3, rs.getNString("path"));
-      ps.setNString(4, rs.getNString("md5"));
-      ps.setBinaryStream(5, rs.getBinaryStream("thumbnail"));
-      ps.setBinaryStream(6, rs.getBinaryStream("hist_a"));
-      ps.setBinaryStream(7, rs.getBinaryStream("hist_r"));
-      ps.setBinaryStream(8, rs.getBinaryStream("hist_g"));
-      ps.setBinaryStream(9, rs.getBinaryStream("hist_b"));
-      ps.setInt(10, rs.getInt("page"));
-      ps.setBoolean(11, rs.getBoolean("no_similar"));
-      ps.executeUpdate();
-    }
-
-    rs = s1.executeQuery("SELECT * FROM tagged;");
-    ps = db2.prepareStatement("INSERT INTO tagged VALUES (?, ?);");
-    while (rs.next()) {
-      ps.setInt(1, rs.getInt(1));
-      ps.setInt(2, rs.getInt(2));
-      ps.executeUpdate();
-    }
-
-
-    s1.executeUpdate("SHUTDOWN DEFRAG;");
-    s2.executeUpdate("SHUTDOWN DEFRAG;");
   }
 
 }

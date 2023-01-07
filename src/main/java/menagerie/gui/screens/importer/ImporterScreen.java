@@ -64,16 +64,7 @@ public class ImporterScreen extends Screen {
                         ObjectListener<List<SimilarPair<MediaItem>>> duplicateResolverListener,
                         ObjectListener<MediaItem> selectItemListener) {
 
-    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
-        close();
-        event.consume();
-      }
-    });
-
+    setupKeyEventHandlers();
 
     Button exit = new Button("X");
     exit.setOnAction(event -> close());
@@ -82,42 +73,12 @@ public class ImporterScreen extends Screen {
     BorderPane top = new BorderPane(null, null, exit, null, title);
     top.setPadding(new Insets(0, 0, 0, 5));
 
-    listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-        event.consume();
-      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
-        close();
-        event.consume();
-      }
-    });
+    setupListViewEventHandlers();
 
-    Button playPauseButton = new Button("Pause");
-    playPauseButton.setOnAction(event -> {
-      importerThread.setPaused(!importerThread.isPaused());
-      if (importerThread.isPaused()) {
-        playPauseButton.setText("Resume");
-      } else {
-        playPauseButton.setText("Pause");
-      }
-    });
-    Button cancelAllButton = new Button("Cancel All");
-    cancelAllButton.setOnAction(event -> jobs.forEach(job -> {
-      if (job.getStatus() == ImportJobStatus.WAITING) {
-        job.cancel();
-        listView.getItems().remove(job);
-      }
-    }));
-    Button pairsButton = new Button("Similar: 0");
-    pairsButton.getStyleClass().addAll(PAIRS_STYLE_CLASS);
-    similar.addListener((InvalidationListener) c -> {
-      Platform.runLater(() -> pairsButton.setText("Similar: " + similar.size()));
-      pairsButton.pseudoClassStateChanged(pairsPseudoClass, !similar.isEmpty());
-    });
-    pairsButton.setOnAction(event -> {
-      duplicateResolverListener.pass(new ArrayList<>(similar));
-      similar.clear();
-    });
+    Button playPauseButton = getPauseButton(importerThread);
+    Button cancelAllButton = getCancelAllButton();
+    Button pairsButton = getPairsButton(duplicateResolverListener);
+
     BorderPane bottom = new BorderPane(pairsButton, null, playPauseButton, null, cancelAllButton);
     bottom.setPadding(new Insets(5));
 
@@ -135,6 +96,10 @@ public class ImporterScreen extends Screen {
 
 
     // ImporterThread setup
+    setupListViewForImporter(importerThread, selectItemListener);
+  }
+
+  private void setupListViewForImporter(ImporterThread importerThread, ObjectListener<MediaItem> selectItemListener) {
     listView.setCellFactory(param -> new ImportListCell(this, selectItemListener));
     importerThread.addImporterListener(job -> Platform.runLater(() -> {
       jobs.add(job);
@@ -152,6 +117,68 @@ public class ImporterScreen extends Screen {
         }
       });
     }));
+  }
+
+  private Button getPairsButton(ObjectListener<List<SimilarPair<MediaItem>>> duplicateResolverListener) {
+    Button pairsButton = new Button("Similar: 0");
+    pairsButton.getStyleClass().addAll(PAIRS_STYLE_CLASS);
+    similar.addListener((InvalidationListener) c -> {
+      Platform.runLater(() -> pairsButton.setText("Similar: " + similar.size()));
+      pairsButton.pseudoClassStateChanged(pairsPseudoClass, !similar.isEmpty());
+    });
+    pairsButton.setOnAction(event -> {
+      duplicateResolverListener.pass(new ArrayList<>(similar));
+      similar.clear();
+    });
+    return pairsButton;
+  }
+
+  private Button getCancelAllButton() {
+    Button cancelAllButton = new Button("Cancel All");
+    cancelAllButton.setOnAction(event -> jobs.forEach(job -> {
+      if (job.getStatus() == ImportJobStatus.WAITING) {
+        job.cancel();
+        listView.getItems().remove(job);
+      }
+    }));
+    return cancelAllButton;
+  }
+
+  private Button getPauseButton(ImporterThread importerThread) {
+    Button playPauseButton = new Button("Pause");
+    playPauseButton.setOnAction(event -> {
+      importerThread.setPaused(!importerThread.isPaused());
+      if (importerThread.isPaused()) {
+        playPauseButton.setText("Resume");
+      } else {
+        playPauseButton.setText("Pause");
+      }
+    });
+    return playPauseButton;
+  }
+
+  private void setupListViewEventHandlers() {
+    listView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        close();
+        event.consume();
+      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
+        close();
+        event.consume();
+      }
+    });
+  }
+
+  private void setupKeyEventHandlers() {
+    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        close();
+        event.consume();
+      } else if (event.getCode() == KeyCode.N && event.isControlDown()) {
+        close();
+        event.consume();
+      }
+    });
   }
 
   /**

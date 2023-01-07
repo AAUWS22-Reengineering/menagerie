@@ -52,10 +52,43 @@ public abstract class PluginLoader {
     List<URL> urls = new ArrayList<>();
     List<String> classes = new ArrayList<>();
 
+    findPlugins(folder, urls, classes);
+
+    List<MenageriePlugin> plugins = new ArrayList<>();
+
+    try (URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[0]))) {
+      classes.forEach(className -> {
+        try {
+          loadPlugin(plugins, classLoader, className);
+        } catch (IllegalAccessException | InstantiationException | ClassNotFoundException |
+            NoClassDefFoundError e) {
+          LOGGER.log(Level.SEVERE, "Failed to load plugin class: " + className, e);
+        }
+      });
+    }
+    catch (IOException ex) {
+      LOGGER.log(Level.SEVERE, "Failed to close URLClassLoader", ex);
+    }
+
+    return plugins;
+  }
+
+  private static void loadPlugin(List<MenageriePlugin> plugins, URLClassLoader classLoader, String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    Class c = classLoader.loadClass(className);
+    for (Class anInterface : c.getInterfaces()) {
+      if (anInterface == MenageriePlugin.class) {
+        MenageriePlugin plugin = (MenageriePlugin) c.newInstance();
+        plugins.add(plugin);
+        LOGGER.info("Loaded plugin: " + plugin.getPluginName());
+        break;
+      }
+    }
+  }
+
+  private static void findPlugins(File folder, List<URL> urls, List<String> classes) {
     for (File file : Objects.requireNonNull(
         folder.listFiles((dir, name) -> name.endsWith(".jar")))) {
-      try {
-        JarFile jar = new JarFile(file);
+      try (JarFile jar = new JarFile(file)) {
         String mainClass =
             jar.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
         if (mainClass != null) {
@@ -67,28 +100,6 @@ public abstract class PluginLoader {
         LOGGER.log(Level.SEVERE, "Error reading plugin jarfile", e);
       }
     }
-
-    List<MenageriePlugin> plugins = new ArrayList<>();
-
-    URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[0]));
-    classes.forEach(className -> {
-      try {
-        Class c = classLoader.loadClass(className);
-        for (Class anInterface : c.getInterfaces()) {
-          if (anInterface == MenageriePlugin.class) {
-            MenageriePlugin plugin = (MenageriePlugin) c.newInstance();
-            plugins.add(plugin);
-            LOGGER.info("Loaded plugin: " + plugin.getPluginName());
-            break;
-          }
-        }
-      } catch (IllegalAccessException | InstantiationException | ClassNotFoundException |
-               NoClassDefFoundError e) {
-        LOGGER.log(Level.SEVERE, "Failed to load plugin class: " + className, e);
-      }
-    });
-
-    return plugins;
   }
 
 }

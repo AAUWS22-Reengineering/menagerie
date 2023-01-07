@@ -43,6 +43,9 @@ public abstract class MD5Hasher {
 
   private static MessageDigest digest;
 
+  private MD5Hasher() {
+  }
+
   /**
    * Reads a file and calculates an MD5 hash representing it.
    *
@@ -51,8 +54,9 @@ public abstract class MD5Hasher {
    * @throws IOException If error occurred when reading file.
    */
   public static byte[] hash(File file) throws IOException {
-    if (file != null && file.exists() && getDigest() != null) {
-      return getDigest().digest(Files.readAllBytes(file.toPath()));
+    MessageDigest messageDigest = getDigest();
+    if (file != null && file.exists() && messageDigest != null) {
+      return messageDigest.digest(Files.readAllBytes(file.toPath()));
     }
     return null;
   }

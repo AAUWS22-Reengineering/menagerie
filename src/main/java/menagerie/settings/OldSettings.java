@@ -24,6 +24,8 @@
 
 package menagerie.settings;
 
+import javafx.beans.property.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,22 +33,9 @@ import java.io.PrintWriter;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 
 /**
  * A JavaFX Application settings object supporting 4 types, file storing, and settings listeners via Property objects.
@@ -87,34 +76,13 @@ public class OldSettings {
 
         while (scan.hasNextLine()) {
           String line = scan.nextLine();
-            if (line.startsWith("#") || line.isEmpty()) {
-                continue;
-            }
+          if (line.startsWith("#") || line.isEmpty()) {
+            continue;
+          }
           LOGGER.config("Settings read line: " + line);
 
           try {
-            final int firstColonIndex = line.indexOf(':');
-            final int secondColonIndex = line.indexOf(':', firstColonIndex + 1);
-            final Key key = keyFromName(line.substring(0, firstColonIndex));
-            final String typeName = line.substring(firstColonIndex + 1, secondColonIndex);
-            final String valueString = line.substring(secondColonIndex + 1);
-
-            if (key == null) {
-              LOGGER.warning("Settings tried to load unknown key in line: " + line);
-              continue;
-            }
-
-            if (typeName.equalsIgnoreCase("BOOLEAN")) {
-              setBoolean(key, Boolean.parseBoolean(valueString));
-            } else if (typeName.equalsIgnoreCase("STRING")) {
-              setString(key, valueString);
-            } else if (typeName.equalsIgnoreCase("DOUBLE")) {
-              setDouble(key, Double.parseDouble(valueString));
-            } else if (typeName.equalsIgnoreCase("INTEGER")) {
-              setInt(key, Integer.parseInt(valueString));
-            } else {
-              LOGGER.warning("Settings tried to load unknown type from line: " + line);
-            }
+            loadSetting(line);
           } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Error trying to read settings line: " + line);
           }
@@ -124,6 +92,31 @@ public class OldSettings {
       } catch (IOException e) {
         LOGGER.log(Level.WARNING, "Error trying to read settings file: " + file, e);
       }
+    }
+  }
+
+  private void loadSetting(String line) {
+    final int firstColonIndex = line.indexOf(':');
+    final int secondColonIndex = line.indexOf(':', firstColonIndex + 1);
+    final Key key = keyFromName(line.substring(0, firstColonIndex));
+    final String typeName = line.substring(firstColonIndex + 1, secondColonIndex);
+    final String valueString = line.substring(secondColonIndex + 1);
+
+    if (key == null) {
+      LOGGER.warning("Settings tried to load unknown key in line: " + line);
+      return;
+    }
+
+    if (typeName.equalsIgnoreCase("BOOLEAN")) {
+      setBoolean(key, Boolean.parseBoolean(valueString));
+    } else if (typeName.equalsIgnoreCase("STRING")) {
+      setString(key, valueString);
+    } else if (typeName.equalsIgnoreCase("DOUBLE")) {
+      setDouble(key, Double.parseDouble(valueString));
+    } else if (typeName.equalsIgnoreCase("INTEGER")) {
+      setInt(key, Integer.parseInt(valueString));
+    } else {
+      LOGGER.warning("Settings tried to load unknown type from line: " + line);
     }
   }
 
@@ -232,9 +225,9 @@ public class OldSettings {
 
   private static Key keyFromName(String name) {
     for (Key key : Key.values()) {
-        if (key.toString().equals(name)) {
-            return key;
-        }
+      if (key.toString().equals(name)) {
+        return key;
+      }
     }
 
     return null;
@@ -248,9 +241,9 @@ public class OldSettings {
    * @return True if the string was accepted. False if no change was made because the string is not sanitary.
    */
   public boolean setString(Key key, String value) {
-      if (value != null && value.contains("\n")) {
-          return false;
-      }
+    if (value != null && value.contains("\n")) {
+      return false;
+    }
 
     StringProperty get = (StringProperty) vars.get(key);
     if (get != null) {

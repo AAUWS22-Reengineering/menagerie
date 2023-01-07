@@ -1,9 +1,7 @@
 package menagerie.gui.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.taglist.TagListCell;
 import menagerie.model.menagerie.Item;
@@ -51,5 +49,23 @@ public class TagUtil {
       }
     });
     return added;
+  }
+
+  public static Comparator<Tag> getColorComparator() {
+    return (o1, o2) -> {
+      if (o1.getColor() == null) {
+        if (o2.getColor() == null) {
+          return 0;
+        } else {
+          return 1;
+        }
+      } else {
+        if (o2.getColor() == null) {
+          return -1;
+        } else {
+          return o1.getColor().compareTo(o2.getColor());
+        }
+      }
+    };
   }
 }

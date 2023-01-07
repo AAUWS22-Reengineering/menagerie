@@ -85,17 +85,17 @@ public class FileDownloader {
     LOGGER.info(() -> "Downloading: " + url + "\nTo local: " + downloadTo);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.addRequestProperty("User-Agent", "Mozilla/4.0");
-    ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream());
-    try (FileOutputStream fos = new FileOutputStream(downloadTo)) {
-      final long size = conn.getContentLengthLong();
-      final int chunkSize = 4096;
-      for (int i = 0; i < size; i += chunkSize) {
-        fos.getChannel().transferFrom(rbc, i, chunkSize);
+    try (ReadableByteChannel rbc = Channels.newChannel(conn.getInputStream())) {
+      try (FileOutputStream fos = new FileOutputStream(downloadTo)) {
+        final long size = conn.getContentLengthLong();
+        final int chunkSize = 4096;
+        for (int i = 0; i < size; i += chunkSize) {
+          fos.getChannel().transferFrom(rbc, i, chunkSize);
 
-        progressProperty.set((double) i / size);
+          progressProperty.set((double) i / size);
+        }
       }
     }
-    rbc.close();
     conn.disconnect();
     LOGGER.info(() -> "Successfully downloaded: " + url + "\nTo local: " + downloadTo);
 

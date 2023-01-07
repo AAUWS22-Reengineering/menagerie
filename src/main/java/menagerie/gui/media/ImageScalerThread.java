@@ -78,6 +78,7 @@ public class ImageScalerThread extends CancellableThread {
             try {
               wait();
             } catch (InterruptedException ignore) {
+              Thread.currentThread().interrupt();
             }
           } else {
             // Something in queue

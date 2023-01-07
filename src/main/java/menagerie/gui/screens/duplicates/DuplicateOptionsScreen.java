@@ -24,23 +24,10 @@
 
 package menagerie.gui.screens.duplicates;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -54,7 +41,6 @@ import menagerie.gui.screens.ScreenPane;
 import menagerie.gui.screens.dialogs.AlertDialogScreen;
 import menagerie.gui.screens.dialogs.ProgressScreen;
 import menagerie.model.SimilarPair;
-import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
@@ -62,6 +48,14 @@ import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.CancellableThread;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DuplicateOptionsScreen extends Screen {
 
@@ -97,13 +91,7 @@ public class DuplicateOptionsScreen extends Screen {
 
     this.settings = settings;
 
-    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-      if (event.getCode() == KeyCode.ESCAPE) {
-        close();
-      } else if (event.getCode() == KeyCode.ENTER) {
-        compareButtonOnAction();
-      }
-    });
+    setupEventHandlers();
 
     Button exit = new Button("X");
     exit.setOnAction(event -> close());
@@ -113,68 +101,12 @@ public class DuplicateOptionsScreen extends Screen {
     VBox contents = new VBox(5);
     contents.setPadding(new Insets(5));
 
-    compareChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
-    compareChoiceBox.getSelectionModel().selectFirst();
-    Label l1 = new Label("Compare:");
-    HBox h = new HBox(5, l1, compareChoiceBox, firstCountLabel);
-    h.setAlignment(Pos.CENTER_LEFT);
-    contents.getChildren().add(h);
-
-    Label l2 = new Label("To:");
-    l2.minWidthProperty().bind(l1.widthProperty());
-    toChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
-    toChoiceBox.getSelectionModel().selectFirst();
-    toChoiceBox.getSelectionModel().selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> updateCounts());
-    compareChoiceBox.getSelectionModel().selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> {
-          Scope toSelected = toChoiceBox.getValue();
-          switch (newValue) {
-            case SELECTED:
-              toChoiceBox.getItems().clear();
-              toChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
-              break;
-            case SEARCHED:
-              toChoiceBox.getItems().clear();
-              toChoiceBox.getItems().addAll(Scope.SEARCHED, Scope.ALL);
-              break;
-            case ALL:
-              toChoiceBox.getItems().clear();
-              toChoiceBox.getItems().addAll(Scope.ALL);
-              break;
-          }
-          if (toChoiceBox.getItems().contains(toSelected)) {
-            toChoiceBox.getSelectionModel().select(toSelected);
-          } else {
-            toChoiceBox.getSelectionModel().selectFirst();
-          }
-
-          updateCounts();
-        });
-    h = new HBox(5, l2, toChoiceBox, secondCountLabel);
-    h.setAlignment(Pos.CENTER_LEFT);
-    contents.getChildren().add(h);
+    setupCompareTo(contents);
+    HBox h;
 
     contents.getChildren().add(includeGroupElementsCheckBox);
 
-    confidenceTextField.setPromptText(MediaItem.MIN_CONFIDENCE + "-" + MediaItem.MAX_CONFIDENCE);
-    confidenceTextField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue) {
-        try {
-          double value = Double.parseDouble(confidenceTextField.getText());
-          if (value < MediaItem.MIN_CONFIDENCE) {
-            confidenceTextField.setText("" + MediaItem.MIN_CONFIDENCE);
-          } else if (value > MediaItem.MAX_CONFIDENCE) {
-            confidenceTextField.setText("" + MediaItem.MAX_CONFIDENCE);
-          }
-        } catch (NumberFormatException e) {
-          confidenceTextField.setText("" + DEFAULT_CONFIDENCE);
-        }
-      }
-    });
-    confidenceTextField.setTooltip(new Tooltip(
-        "Similarity confidence: (" + MediaItem.MIN_CONFIDENCE + "-" + MediaItem.MAX_CONFIDENCE +
-            ")"));
+    setupConfidenceTextField();
     h = new HBox(5, new Label("Confidence:"), confidenceTextField);
     h.setAlignment(Pos.CENTER_LEFT);
     contents.getChildren().add(h);
@@ -196,13 +128,96 @@ public class DuplicateOptionsScreen extends Screen {
     BorderPane bottom = new BorderPane(null, null, h, null, previousButton);
     bottom.setPadding(new Insets(5));
 
+    setupRootPane(center, bottom);
+
+    setDefaultFocusNode(compare);
+  }
+
+  private void setupCompareTo(VBox contents) {
+    compareChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
+    compareChoiceBox.getSelectionModel().selectFirst();
+    Label l1 = new Label("Compare:");
+    HBox h = new HBox(5, l1, compareChoiceBox, firstCountLabel);
+    h.setAlignment(Pos.CENTER_LEFT);
+    contents.getChildren().add(h);
+
+    Label l2 = new Label("To:");
+    l2.minWidthProperty().bind(l1.widthProperty());
+    setupToChoiceBox();
+    h = new HBox(5, l2, toChoiceBox, secondCountLabel);
+    h.setAlignment(Pos.CENTER_LEFT);
+    contents.getChildren().add(h);
+  }
+
+  private void setupRootPane(VBox center, BorderPane bottom) {
     BorderPane root = new BorderPane(center, null, null, bottom, null);
     root.setPrefWidth(500);
     root.getStyleClass().addAll(ROOT_STYLE_CLASS);
     root.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
     setCenter(root);
+  }
 
-    setDefaultFocusNode(compare);
+  private void setupEventHandlers() {
+    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        close();
+      } else if (event.getCode() == KeyCode.ENTER) {
+        compareButtonOnAction();
+      }
+    });
+  }
+
+  private void setupConfidenceTextField() {
+    confidenceTextField.setPromptText(MediaItem.MIN_CONFIDENCE + "-" + MediaItem.MAX_CONFIDENCE);
+    confidenceTextField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        try {
+          double value = Double.parseDouble(confidenceTextField.getText());
+          if (value < MediaItem.MIN_CONFIDENCE) {
+            confidenceTextField.setText("" + MediaItem.MIN_CONFIDENCE);
+          } else if (value > MediaItem.MAX_CONFIDENCE) {
+            confidenceTextField.setText("" + MediaItem.MAX_CONFIDENCE);
+          }
+        } catch (NumberFormatException e) {
+          confidenceTextField.setText("" + DEFAULT_CONFIDENCE);
+        }
+      }
+    });
+    confidenceTextField.setTooltip(new Tooltip(
+        "Similarity confidence: (" + MediaItem.MIN_CONFIDENCE + "-" + MediaItem.MAX_CONFIDENCE +
+            ")"));
+  }
+
+  private void setupToChoiceBox() {
+    toChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
+    toChoiceBox.getSelectionModel().selectFirst();
+    toChoiceBox.getSelectionModel().selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> updateCounts());
+    compareChoiceBox.getSelectionModel().selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> {
+          Scope toSelected = toChoiceBox.getValue();
+          switch (newValue) {
+            case SELECTED -> {
+              toChoiceBox.getItems().clear();
+              toChoiceBox.getItems().addAll(Scope.SELECTED, Scope.SEARCHED, Scope.ALL);
+            }
+            case SEARCHED -> {
+              toChoiceBox.getItems().clear();
+              toChoiceBox.getItems().addAll(Scope.SEARCHED, Scope.ALL);
+            }
+            case ALL -> {
+              toChoiceBox.getItems().clear();
+              toChoiceBox.getItems().addAll(Scope.ALL);
+            }
+          }
+          if (toChoiceBox.getItems().contains(toSelected)) {
+            toChoiceBox.getSelectionModel().select(toSelected);
+          } else {
+            toChoiceBox.getSelectionModel().selectFirst();
+          }
+
+          updateCounts();
+        });
   }
 
   /**
@@ -279,7 +294,7 @@ public class DuplicateOptionsScreen extends Screen {
     saveSettings();
 
     List<Item> compare = getFilteredItems(all, compareChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());
-    List<Item> to = getFilteredItems(all, toChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());;
+    List<Item> to = getFilteredItems(all, toChoiceBox.getValue(), includeGroupElementsCheckBox.isSelected());
 
     if (settings.cudaDuplicates.getValue()) {
       launchGPUDuplicateFinder(compare, to);

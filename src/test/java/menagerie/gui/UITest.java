@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 
 @ExtendWith(ApplicationExtension.class)
-public class UITest {
+public abstract class UITest {
 
   public static final int SLEEP_TIME = 250;
 

@@ -27,22 +27,6 @@ package menagerie.gui;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.ZipFile;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import menagerie.model.menagerie.Item;
@@ -55,6 +39,24 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.ZipFile;
 
 /**
  * JavaFX Image wrapper specifically for loading thumbnails of various types.
@@ -121,63 +123,91 @@ public class Thumbnail {
 
   private void loadItemImage() {
     if (Filters.IMAGE_NAME_FILTER.accept(file)) {
-      image = new Image(file.toURI().toString(), THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
+      createImageForImage();
     } else if (Filters.RAR_NAME_FILTER.accept(file)) {
-      try (Archive a = new Archive(new FileInputStream(file))) {
-        List<FileHeader> fileHeaders = a.getFileHeaders();
-        if (!fileHeaders.isEmpty()) {
-          try (InputStream is = a.getInputStream(fileHeaders.get(0))) {
-            image = new Image(is, THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
-          }
-        } else {
-          return;
-        }
-      } catch (RarException | IOException | NullPointerException e) {
-        LOGGER.log(Level.INFO, "Failed to thumbnail RAR: " + file);
+      if (!createImageForRAR()) {
+        // image creation failed
         return;
       }
     } else if (Filters.ZIP_NAME_FILTER.accept(file)) {
-      try (ZipFile zip = new ZipFile(file)) {
-        if (zip.entries().hasMoreElements()) {
-          try (InputStream is = zip.getInputStream(zip.entries().nextElement())) {
-            image = new Image(is, THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
-          }
-        } else {
-          return;
-        }
-      } catch (IOException e) {
-        LOGGER.log(Level.INFO, "Failed to thumbnail ZIP: " + file);
+      if (!createImageForZIP()) {
+        // image creation failed
         return;
       }
     } else if (Filters.PDF_NAME_FILTER.accept(file)) {
-      try (PDDocument doc = PDDocument.load(file)) {
-        PDRectangle mb = doc.getPage(0).getMediaBox();
-        float scale = THUMBNAIL_SIZE / mb.getWidth();
-          if (THUMBNAIL_SIZE / mb.getHeight() < scale) {
-              scale = THUMBNAIL_SIZE / mb.getHeight();
-          }
-        BufferedImage img = new PDFRenderer(doc).renderImage(0, scale);
-        image = SwingFXUtils.toFXImage(img, null);
-      } catch (IOException e) {
-        LOGGER.log(Level.INFO, "Failed to thumbnail PDF: " + file, e);
+      if (!createImageForPDF()) {
+        // image creation failed
         return;
       }
     } else {
-      synchronized (this) {
-        if (unsupportedImage == null) {
-          unsupportedImage = new Image(getClass().getResourceAsStream(UNSUPPORTED_IMAGE_PATH));
-        }
-
-        image = unsupportedImage;
-      }
-
-      synchronized (imageReadyListeners) {
-        imageReadyListeners.forEach(listener -> listener.pass(image));
-      }
+      createImageForUnsupported();
     }
     synchronized (imageReadyListeners) {
       imageReadyListeners.forEach(listener -> listener.pass(image));
     }
+  }
+
+  private void createImageForImage() {
+    image = new Image(file.toURI().toString(), THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
+  }
+
+  private void createImageForUnsupported() {
+    synchronized (this) {
+      if (unsupportedImage == null) {
+        unsupportedImage = new Image(getClass().getResourceAsStream(UNSUPPORTED_IMAGE_PATH));
+      }
+
+      image = unsupportedImage;
+    }
+  }
+
+  private boolean createImageForPDF() {
+    try (PDDocument doc = PDDocument.load(file)) {
+      PDRectangle mb = doc.getPage(0).getMediaBox();
+      float scale = THUMBNAIL_SIZE / mb.getWidth();
+      if (THUMBNAIL_SIZE / mb.getHeight() < scale) {
+        scale = THUMBNAIL_SIZE / mb.getHeight();
+      }
+      BufferedImage img = new PDFRenderer(doc).renderImage(0, scale);
+      image = SwingFXUtils.toFXImage(img, null);
+    } catch (IOException e) {
+      LOGGER.log(Level.INFO, "Failed to thumbnail PDF: " + file, e);
+      return false;
+    }
+    return true;
+  }
+
+  private boolean createImageForZIP() {
+    try (ZipFile zip = new ZipFile(file)) {
+      if (zip.entries().hasMoreElements()) {
+        try (InputStream is = zip.getInputStream(zip.entries().nextElement())) {
+          image = new Image(is, THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
+        }
+      } else {
+        return false;
+      }
+    } catch (IOException e) {
+      LOGGER.log(Level.INFO, "Failed to thumbnail ZIP: " + file);
+      return false;
+    }
+    return true;
+  }
+
+  private boolean createImageForRAR() {
+    try (Archive a = new Archive(new FileInputStream(file))) {
+      List<FileHeader> fileHeaders = a.getFileHeaders();
+      if (!fileHeaders.isEmpty()) {
+        try (InputStream is = a.getInputStream(fileHeaders.get(0))) {
+          image = new Image(is, THUMBNAIL_SIZE, THUMBNAIL_SIZE, true, true);
+        }
+      } else {
+        return false;
+      }
+    } catch (RarException | IOException | NullPointerException e) {
+      LOGGER.log(Level.INFO, "Failed to thumbnail RAR: " + file);
+      return false;
+    }
+    return true;
   }
 
   private void loadVideoImage() {
@@ -204,36 +234,23 @@ public class Thumbnail {
 
     try {
       if (mediaPlayer.media().start(file.getAbsolutePath())) {
-        inPositionLatch.await(2, TimeUnit.SECONDS);
-          if (inPositionLatch.getCount() > 0) {
-              return;
-          }
+        if (!inPositionLatch.await(2, TimeUnit.SECONDS)) {
+          return;
+        }
 
         if (mediaPlayer.video().videoDimension() != null) {
           float vidWidth = (float) mediaPlayer.video().videoDimension().getWidth();
           float vidHeight = (float) mediaPlayer.video().videoDimension().getHeight();
           float scale = Thumbnail.THUMBNAIL_SIZE / vidWidth;
-            if (scale * vidHeight > Thumbnail.THUMBNAIL_SIZE) {
-                scale = Thumbnail.THUMBNAIL_SIZE / vidHeight;
-            }
+          if (scale * vidHeight > Thumbnail.THUMBNAIL_SIZE) {
+            scale = Thumbnail.THUMBNAIL_SIZE / vidHeight;
+          }
           int width = (int) (scale * vidWidth);
           int height = (int) (scale * vidHeight);
 
           try {
-            File tempFile = File.createTempFile("menagerie-video-thumb", ".jpg");
-            mediaPlayer.snapshots().save(tempFile, width, height);
-            snapshotLatch.await(2, TimeUnit.SECONDS);
-            mediaPlayer.events().removeMediaPlayerEventListener(eventListener);
-              if (snapshotLatch.getCount() > 0) {
-                  return;
-              }
-            image = new Image(tempFile.toURI().toString());
-              if (!tempFile.delete()) {
-                  LOGGER.warning("Failed to delete tempfile: " + tempFile);
-              }
-
-            synchronized (imageReadyListeners) {
-              imageReadyListeners.forEach(listener -> listener.pass(image));
+            if (!createImageForVideo(snapshotLatch, eventListener, width, height)) {
+              return;
             }
           } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Failed to get video snapshot of file: " + file, e);
@@ -242,9 +259,32 @@ public class Thumbnail {
 
         mediaPlayer.controls().stop();
       }
-    } catch (Throwable t) {
-      LOGGER.log(Level.WARNING, "Error while trying to create video thumbnail: " + file, t);
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "Error while trying to create video thumbnail: " + file, e);
+      Thread.currentThread().interrupt();
     }
+  }
+
+  private boolean createImageForVideo(CountDownLatch snapshotLatch, MediaPlayerEventListener eventListener, int width, int height) throws IOException, InterruptedException {
+    File tempFile = File.createTempFile("menagerie-video-thumb", ".jpg");
+    mediaPlayer.snapshots().save(tempFile, width, height);
+    boolean snapshotWaitSuccessful = snapshotLatch.await(2, TimeUnit.SECONDS);
+    mediaPlayer.events().removeMediaPlayerEventListener(eventListener);
+    if (!snapshotWaitSuccessful) {
+      return false;
+    }
+    image = new Image(tempFile.toURI().toString());
+    try {
+      Files.delete(tempFile.toPath());
+    }
+    catch (Exception ex) {
+      LOGGER.log(Level.WARNING, "Failed to delete tempfile: " + tempFile, ex);
+    }
+
+    synchronized (imageReadyListeners) {
+      imageReadyListeners.forEach(listener -> listener.pass(image));
+    }
+    return true;
   }
 
   private static void startGeneralThread() {
@@ -261,6 +301,7 @@ public class Thumbnail {
 
           thumb.loadItemImage();
         } catch (InterruptedException ignore) {
+          Thread.currentThread().interrupt();
         }
       }
     }, "General Thumbnailer Thread");
@@ -272,9 +313,9 @@ public class Thumbnail {
     videoThreadRunning = true;
 
     Thread t = new Thread(() -> {
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-        }
+      if (mediaPlayer != null) {
+        mediaPlayer.release();
+      }
       mediaPlayerFactory = new MediaPlayerFactory(VLC_THUMBNAILER_ARGS);
       mediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
 
@@ -291,6 +332,7 @@ public class Thumbnail {
             thumb.owner.purgeThumbnail();
           }
         } catch (InterruptedException ignore) {
+          Thread.currentThread().interrupt();
         }
       }
     }, "Video Thumbnailer Thread");

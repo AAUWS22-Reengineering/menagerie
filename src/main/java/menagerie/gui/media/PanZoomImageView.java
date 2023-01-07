@@ -102,31 +102,106 @@ public class PanZoomImageView extends DynamicImageView {
     super();
     setPickOnBounds(true);
 
-    addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
-      if (event.getButton().equals(MouseButton.PRIMARY)) {
-        double s = scale.get();
-        if (scaleApplied) {
-          s = 1;
+    setupDragEventHandler();
+    setupMousePressedEventHandler();
+    setupMouseReleasedEventHandler();
+    setupScrollEventHandler();
+
+    addEventHandler(MouseEvent.MOUSE_ENTERED, event -> getScene().setCursor(Cursor.MOVE));
+    addEventHandler(MouseEvent.MOUSE_EXITED, event -> getScene().setCursor(Cursor.DEFAULT));
+
+    setupImageScaledListener();
+
+    setupScaleChangedListener();
+
+    setApplyScaleAsync(true);
+  }
+
+  private void setupScaleChangedListener() {
+    scale.addListener((observable, oldValue, newValue) -> {
+      if (scaleApplied) {
+        scaleApplied = false;
+        deltaX *= newValue.doubleValue();
+        deltaY *= newValue.doubleValue();
+        setImage(getTrueImage());
+      }
+
+      if (applyScaleAsync && scale.get() >= 3) {
+        Image img = getTrueImage();
+        scalerThread.enqueue(img, newValue.doubleValue(), image -> {
+          if (scale.get() == newValue.doubleValue() && img.equals(getTrueImage())) {
+            Platform.runLater(() -> setAppliedScaleImage(image));
+          }
+        });
+      }
+    });
+  }
+
+  private void setupImageScaledListener() {
+    trueImageProperty().addListener((observable, oldValue, image) -> {
+      scaleApplied = false;
+
+      if (image != null) {
+        if (image.isBackgroundLoading() && image.getProgress() != 1.0) {
+          setupImageProgressListener(image);
+        } else if (getFitWidth() != 0 && getFitHeight() != 0) {
+          fitImageToView();
+        } else {
+          Platform.runLater(this::fitImageToView);
         }
 
-        deltaX = clickImageX + (clickX - event.getX()) * s;
-        deltaY = clickImageY + (clickY - event.getY()) * s;
         updateViewPort();
-
-        draggedThisClick = true;
-
-        event.consume();
+      } else {
+        fitImageToView();
       }
     });
-    addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
-      if (event.getButton().equals(MouseButton.PRIMARY)) {
-        draggedThisClick = false;
-        clickX = event.getX();
-        clickY = event.getY();
-        clickImageX = deltaX;
-        clickImageY = deltaY;
+  }
+
+  private void setupImageProgressListener(Image image) {
+    image.progressProperty().addListener((observable1, oldValue1, newValue) -> {
+      if (!image.isError() && newValue.doubleValue() == 1.0) {
+        fitImageToView();
       }
     });
+  }
+
+  private void setupScrollEventHandler() {
+    addEventHandler(ScrollEvent.SCROLL, event -> {
+      final double fitScale = getFitScale(getTrueImage());
+      final List<Double> work = new ArrayList<>();
+      for (double v : SCALES) {
+        work.add(v);
+      }
+      work.add(fitScale);
+      Collections.sort(work);
+
+      setScale(event, work);
+
+      updateViewPort();
+      event.consume();
+    });
+  }
+
+  private void setScale(ScrollEvent event, List<Double> work) {
+    if (event.getDeltaY() < 0) {
+      for (double d : work) {
+        if (d > scale.get()) {
+          scale.set(d);
+          break;
+        }
+      }
+    } else {
+      Collections.reverse(work);
+      for (double d : work) {
+        if (d < scale.get()) {
+          scale.set(d);
+          break;
+        }
+      }
+    }
+  }
+
+  private void setupMouseReleasedEventHandler() {
     addEventHandler(MouseEvent.MOUSE_RELEASED, event -> {
       if (event.getButton().equals(MouseButton.PRIMARY) && getImage() != null &&
           !draggedThisClick) {
@@ -146,80 +221,37 @@ public class PanZoomImageView extends DynamicImageView {
         }
       }
     });
-    addEventHandler(ScrollEvent.SCROLL, event -> {
-      final double fitScale = getFitScale(getTrueImage());
-      final List<Double> work = new ArrayList<>();
-      for (double v : SCALES) {
-        work.add(v);
-      }
-      work.add(fitScale);
-      Collections.sort(work);
+  }
 
-      if (event.getDeltaY() < 0) {
-        for (double d : work) {
-          if (d > scale.get()) {
-            scale.set(d);
-            break;
-          }
-        }
-      } else {
-        Collections.reverse(work);
-        for (double d : work) {
-          if (d < scale.get()) {
-            scale.set(d);
-            break;
-          }
-        }
+  private void setupMousePressedEventHandler() {
+    addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
+      if (event.getButton().equals(MouseButton.PRIMARY)) {
+        draggedThisClick = false;
+        clickX = event.getX();
+        clickY = event.getY();
+        clickImageX = deltaX;
+        clickImageY = deltaY;
       }
-
-      updateViewPort();
-      event.consume();
     });
+  }
 
-    addEventHandler(MouseEvent.MOUSE_ENTERED, event -> getScene().setCursor(Cursor.MOVE));
-    addEventHandler(MouseEvent.MOUSE_EXITED, event -> getScene().setCursor(Cursor.DEFAULT));
-
-    trueImageProperty().addListener((observable, oldValue, image) -> {
-      scaleApplied = false;
-
-      if (image != null) {
-        if (image.isBackgroundLoading() && image.getProgress() != 1.0) {
-          image.progressProperty().addListener((observable1, oldValue1, newValue) -> {
-            if (!image.isError() && newValue.doubleValue() == 1.0) {
-              fitImageToView();
-            }
-          });
-        } else if (getFitWidth() != 0 && getFitHeight() != 0) {
-          fitImageToView();
-        } else {
-          Platform.runLater(this::fitImageToView);
+  private void setupDragEventHandler() {
+    addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
+      if (event.getButton().equals(MouseButton.PRIMARY)) {
+        double s = scale.get();
+        if (scaleApplied) {
+          s = 1;
         }
 
+        deltaX = clickImageX + (clickX - event.getX()) * s;
+        deltaY = clickImageY + (clickY - event.getY()) * s;
         updateViewPort();
-      } else {
-        fitImageToView();
+
+        draggedThisClick = true;
+
+        event.consume();
       }
     });
-
-    scale.addListener((observable, oldValue, newValue) -> {
-      if (scaleApplied) {
-        scaleApplied = false;
-        deltaX *= newValue.doubleValue();
-        deltaY *= newValue.doubleValue();
-        setImage(getTrueImage());
-      }
-
-      if (applyScaleAsync && scale.get() >= 3) {
-        Image img = getTrueImage();
-        scalerThread.enqueue(img, newValue.doubleValue(), image -> {
-          if (scale.get() == newValue.doubleValue() && img.equals(getTrueImage())) {
-            Platform.runLater(() -> setAppliedScaleImage(image));
-          }
-        });
-      }
-    });
-
-    setApplyScaleAsync(true);
   }
 
   /**

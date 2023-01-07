@@ -52,6 +52,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import menagerie.gui.taglist.TagListCell;
+import menagerie.gui.util.TagUtil;
 import menagerie.model.menagerie.Tag;
 
 public class TagListScreen extends Screen {
@@ -141,25 +142,39 @@ public class TagListScreen extends Screen {
     for (Tag t : tags) {
       String name = t.getName().toLowerCase();
       String val = searchField.getText();
-      if (val == null) {
-        val = "";
-      } else {
-        val = val.trim().toLowerCase();
-      }
+      val = trimSearchString(val);
       if (regexCheckBox.isSelected()) {
-        try {
-          if (name.matches(val)) {
-            listView.getItems().add(t);
-          }
-        } catch (PatternSyntaxException ignore) {
-        }
+        updateSearchRegex(t, name, val);
       } else {
-        if (name.contains(val)) {
-          listView.getItems().add(t);
-        }
+        updateSearchNoRegex(t, name, val);
       }
     }
     updateListOrder();
+  }
+
+  private void updateSearchNoRegex(Tag t, String name, String val) {
+    if (name.contains(val)) {
+      listView.getItems().add(t);
+    }
+  }
+
+  private void updateSearchRegex(Tag t, String name, String val) {
+    try {
+      if (name.matches(val)) {
+        listView.getItems().add(t);
+      }
+    } catch (PatternSyntaxException ignore) {
+      // not handled
+    }
+  }
+
+  private String trimSearchString(String val) {
+    if (val == null) {
+      val = "";
+    } else {
+      val = val.trim().toLowerCase();
+    }
+    return val;
   }
 
   /**
@@ -178,33 +193,13 @@ public class TagListScreen extends Screen {
   }
 
   private void updateListOrder() {
-    Comparator<Tag> comparator = Comparator.comparing(Tag::getName);
-
-    switch (orderBox.getValue()) {
-      case "ID":
-        comparator = Comparator.comparingInt(Tag::getId);
-        break;
-      case "Frequency":
-        comparator = Comparator.comparingInt(Tag::getFrequency);
-        break;
-      case "Color":
-        comparator = (o1, o2) -> {
-          if (o1.getColor() == null) {
-            if (o2.getColor() == null) {
-              return 0;
-            } else {
-              return 1;
-            }
-          } else {
-            if (o2.getColor() == null) {
-              return -1;
-            } else {
-              return o1.getColor().compareTo(o2.getColor());
-            }
-          }
-        };
-        break;
-    }
+    Comparator.comparing(Tag::getName);
+    Comparator<Tag> comparator = switch (orderBox.getValue()) {
+      case "ID" -> Comparator.comparingInt(Tag::getId);
+      case "Frequency" -> Comparator.comparingInt(Tag::getFrequency);
+      case "Color" -> TagUtil.getColorComparator();
+      default -> Comparator.comparing(Tag::getName);
+    };
 
     if (descendingButton.isSelected()) {
       comparator = comparator.reversed();

@@ -199,6 +199,7 @@ public class DatabaseManager extends Thread {
         }
       } catch (InterruptedException e) {
         LOGGER.log(Level.WARNING, "Database updater interrupted while waiting for queue", e);
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -933,39 +934,13 @@ public class DatabaseManager extends Thread {
         while (rs.next()) {
           currentItemCount++;
 
-          ImageHistogram histogram = null;
-          InputStream histAlpha = rs.getBinaryStream("media.hist_a");
-          if (histAlpha != null) {
-            try {
-              final var histRed = rs.getBinaryStream("media.hist_r");
-              final var histGreen = rs.getBinaryStream("media.hist_g");
-              final var histBlue = rs.getBinaryStream("media.hist_b");
-              histogram = new ImageHistogram(histAlpha, histRed, histGreen, histBlue);
-            } catch (HistogramReadException e) {
-              LOGGER.log(Level.SEVERE, "Histogram failed to load from database", e);
-            }
-          }
+          ImageHistogram histogram = getImageHistogram(rs);
 
           // Try to get group
           int gid = rs.getInt("media.gid");
-          GroupItem group = null;
-          if (gid != 0) {
-            for (Item item : menagerie.getItems()) {
-              if (item instanceof GroupItem && item.getId() == gid) {
-                group = (GroupItem) item;
-                break;
-              }
-            }
-          }
+          GroupItem group = getGroup(menagerie, gid);
 
-          final var id = rs.getInt("items.id");
-          final var added = rs.getLong("items.added");
-          final var pageIndex = rs.getInt("media.page");
-          final var noSimilar = rs.getBoolean("media.no_similar");
-          final var file = new File(rs.getNString("media.path"));
-          final var hash = rs.getNString("media.md5");
-          final var media = new MediaItem(
-              menagerie, id, added, pageIndex, noSimilar, group, file, hash, histogram);
+          final MediaItem media = getMediaItem(menagerie, rs, histogram, group);
           menagerie.getItems().add(media);
           if (group != null) {
             group.getElements().add(media);
@@ -977,6 +952,46 @@ public class DatabaseManager extends Thread {
         }
       }
     }
+  }
+
+  private MediaItem getMediaItem(Menagerie menagerie, ResultSet rs, ImageHistogram histogram, GroupItem group) throws SQLException {
+    final var id = rs.getInt("items.id");
+    final var added = rs.getLong("items.added");
+    final var pageIndex = rs.getInt("media.page");
+    final var noSimilar = rs.getBoolean("media.no_similar");
+    final var file = new File(rs.getNString("media.path"));
+    final var hash = rs.getNString("media.md5");
+    return new MediaItem(
+        menagerie, id, added, pageIndex, noSimilar, group, file, hash, histogram);
+  }
+
+  private GroupItem getGroup(Menagerie menagerie, int gid) {
+    GroupItem group = null;
+    if (gid != 0) {
+      for (Item item : menagerie.getItems()) {
+        if (item instanceof GroupItem && item.getId() == gid) {
+          group = (GroupItem) item;
+          break;
+        }
+      }
+    }
+    return group;
+  }
+
+  private ImageHistogram getImageHistogram(ResultSet rs) throws SQLException {
+    ImageHistogram histogram = null;
+    InputStream histAlpha = rs.getBinaryStream("media.hist_a");
+    if (histAlpha != null) {
+      try {
+        final var histRed = rs.getBinaryStream("media.hist_r");
+        final var histGreen = rs.getBinaryStream("media.hist_g");
+        final var histBlue = rs.getBinaryStream("media.hist_b");
+        histogram = new ImageHistogram(histAlpha, histRed, histGreen, histBlue);
+      } catch (HistogramReadException e) {
+        LOGGER.log(Level.SEVERE, "Histogram failed to load from database", e);
+      }
+    }
+    return histogram;
   }
 
   private int getItemCount() throws SQLException {

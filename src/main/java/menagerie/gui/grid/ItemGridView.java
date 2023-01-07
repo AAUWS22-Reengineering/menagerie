@@ -24,11 +24,7 @@
 
 package menagerie.gui.grid;
 
-import java.util.HashSet;
-import java.util.Set;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -41,6 +37,9 @@ import menagerie.gui.Thumbnail;
 import menagerie.model.menagerie.Item;
 import menagerie.util.listeners.ObjectListener;
 import org.controlsfx.control.GridView;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ItemGridView extends GridView<Item> {
 
@@ -68,8 +67,8 @@ public class ItemGridView extends GridView<Item> {
    * Constructs an item grid that can display Menagerie items.
    */
   public ItemGridView() {
-    setCellWidth(Thumbnail.THUMBNAIL_SIZE + CELL_BORDER * 2);
-    setCellHeight(Thumbnail.THUMBNAIL_SIZE + CELL_BORDER * 2);
+    setCellWidth(Thumbnail.THUMBNAIL_SIZE + (double) CELL_BORDER * 2);
+    setCellHeight(Thumbnail.THUMBNAIL_SIZE + (double) CELL_BORDER * 2);
 
     getItems().addListener((ListChangeListener<? super Item>) c -> {
       while (c.next()) {
@@ -77,26 +76,7 @@ public class ItemGridView extends GridView<Item> {
       }
     });
 
-    selected.addListener((ListChangeListener<? super Item>) c -> {
-      while (c.next()) {
-        for (Item item : c.getRemoved()) {
-          Object obj = item.getMetadata().get("selected");
-          if (obj instanceof BooleanProperty) {
-            ((BooleanProperty) obj).set(false);
-          } else {
-            item.getMetadata().put("selected", new SimpleBooleanProperty(false));
-          }
-        }
-        for (Item item : c.getAddedSubList()) {
-          Object obj = item.getMetadata().get("selected");
-          if (obj instanceof BooleanProperty) {
-            ((BooleanProperty) obj).set(true);
-          } else {
-            item.getMetadata().put("selected", new SimpleBooleanProperty(true));
-          }
-        }
-      }
-    });
+    selected.addListener(new ItemGridSelectionChangeListener());
 
     setOnMouseReleased(event -> {
       if (event.getButton() == MouseButton.PRIMARY) {
@@ -120,80 +100,119 @@ public class ItemGridView extends GridView<Item> {
       int index = getItems().indexOf(getLastSelected());
       switch (event.getCode()) {
         case LEFT -> {
-          if (index > 0) {
-            select(getItems().get(index - 1), event.isControlDown(), event.isShiftDown());
-          }
+          onKeyLeftPressed(event, index);
           event.consume();
         }
         case RIGHT -> {
-          if (index < getItems().size() - 1) {
-            select(getItems().get(index + 1), event.isControlDown(), event.isShiftDown());
-          }
+          onKeyRightPressed(event, index);
           event.consume();
         }
         case DOWN -> {
-          if (selected.isEmpty() && index == -1) {
-            select(getItems().get(0), event.isControlDown(), event.isShiftDown());
-          } else {
-            if (index + getRowLength() < getItems().size()) {
-              select(getItems().get(index + getRowLength()), event.isControlDown(),
-                  event.isShiftDown());
-            } else {
-              select(getItems().get(getItems().size() - 1), event.isControlDown(),
-                  event.isShiftDown());
-            }
-          }
+          onKeyDownPressed(event, index);
           event.consume();
         }
         case UP -> {
-          if (index - getRowLength() >= 0) {
-            select(getItems().get(index - getRowLength()), event.isControlDown(),
-                event.isShiftDown());
-          } else {
-            select(getItems().get(0), event.isControlDown(), event.isShiftDown());
-          }
+          onKeyUpPressed(event, index);
           event.consume();
         }
         case A -> {
-          if (event.isControlDown()) {
-            if (selected.size() == getItems().size()) {
-              clearSelection();
-            } else {
-              clearSelection();
-              selected.addAll(getItems());
-            }
-          }
+          onKeyAPressed(event);
           event.consume();
         }
         case HOME -> {
-          select(getItems().get(0), event.isControlDown(), event.isShiftDown());
+          onKeyHomePressed(event);
           event.consume();
         }
         case END -> {
-          select(getItems().get(getItems().size() - 1), event.isControlDown(), event.isShiftDown());
+          onKeyEndPressed(event);
           event.consume();
         }
         case PAGE_DOWN -> {
-          if (index + (getPageLength() - 1) * getRowLength() < getItems().size()) {
-            select(getItems().get(index + (getPageLength() - 1) * getRowLength()),
-                event.isControlDown(), event.isShiftDown());
-          } else {
-            select(getItems().get(getItems().size() - 1), event.isControlDown(),
-                event.isShiftDown());
-          }
+          onKeyPageDownPressed(event, index);
           event.consume();
         }
         case PAGE_UP -> {
-          if (index - (getPageLength() - 1) * getRowLength() >= 0) {
-            select(getItems().get(index - (getPageLength() - 1) * getRowLength()),
-                event.isControlDown(), event.isShiftDown());
-          } else {
-            select(getItems().get(0), event.isControlDown(), event.isShiftDown());
-          }
+          onKeyPageUpPressed(event, index);
           event.consume();
+        }
+        default -> {
+          // nothing
         }
       }
     });
+  }
+
+  private void onKeyPageUpPressed(KeyEvent event, int index) {
+    if (index - (getPageLength() - 1) * getRowLength() >= 0) {
+      select(getItems().get(index - (getPageLength() - 1) * getRowLength()),
+          event.isControlDown(), event.isShiftDown());
+    } else {
+      select(getItems().get(0), event.isControlDown(), event.isShiftDown());
+    }
+  }
+
+  private void onKeyPageDownPressed(KeyEvent event, int index) {
+    if (index + (getPageLength() - 1) * getRowLength() < getItems().size()) {
+      select(getItems().get(index + (getPageLength() - 1) * getRowLength()),
+          event.isControlDown(), event.isShiftDown());
+    } else {
+      select(getItems().get(getItems().size() - 1), event.isControlDown(),
+          event.isShiftDown());
+    }
+  }
+
+  private void onKeyEndPressed(KeyEvent event) {
+    select(getItems().get(getItems().size() - 1), event.isControlDown(), event.isShiftDown());
+  }
+
+  private void onKeyHomePressed(KeyEvent event) {
+    select(getItems().get(0), event.isControlDown(), event.isShiftDown());
+  }
+
+  private void onKeyAPressed(KeyEvent event) {
+    if (event.isControlDown()) {
+      if (selected.size() == getItems().size()) {
+        clearSelection();
+      } else {
+        clearSelection();
+        selected.addAll(getItems());
+      }
+    }
+  }
+
+  private void onKeyUpPressed(KeyEvent event, int index) {
+    if (index - getRowLength() >= 0) {
+      select(getItems().get(index - getRowLength()), event.isControlDown(),
+          event.isShiftDown());
+    } else {
+      select(getItems().get(0), event.isControlDown(), event.isShiftDown());
+    }
+  }
+
+  private void onKeyDownPressed(KeyEvent event, int index) {
+    if (selected.isEmpty() && index == -1) {
+      select(getItems().get(0), event.isControlDown(), event.isShiftDown());
+    } else {
+      if (index + getRowLength() < getItems().size()) {
+        select(getItems().get(index + getRowLength()), event.isControlDown(),
+            event.isShiftDown());
+      } else {
+        select(getItems().get(getItems().size() - 1), event.isControlDown(),
+            event.isShiftDown());
+      }
+    }
+  }
+
+  private void onKeyRightPressed(KeyEvent event, int index) {
+    if (index < getItems().size() - 1) {
+      select(getItems().get(index + 1), event.isControlDown(), event.isShiftDown());
+    }
+  }
+
+  private void onKeyLeftPressed(KeyEvent event, int index) {
+    if (index > 0) {
+      select(getItems().get(index - 1), event.isControlDown(), event.isShiftDown());
+    }
   }
 
   /**
@@ -224,6 +243,17 @@ public class ItemGridView extends GridView<Item> {
       return;
     }
 
+    updateSelectedItems(item, ctrlDown, shiftDown);
+    lastSelected.set(item);
+
+    // Ensure last selected cell is visible
+    scrollToItem(getLastSelected());
+
+    // Notify selection listener
+    selectionListeners.forEach(listener -> listener.pass(item));
+  }
+
+  private void updateSelectedItems(Item item, boolean ctrlDown, boolean shiftDown) {
     if (ctrlDown) {
       if (isSelected(item)) {
         selected.remove(item);
@@ -245,21 +275,18 @@ public class ItemGridView extends GridView<Item> {
         selected.add(item);
       }
     }
-    lastSelected.set(item);
+  }
 
-    // Ensure last selected cell is visible
-    if (getLastSelected() != null) {
+  private void scrollToItem(Item item) {
+    if (item != null) {
       for (Node n : getChildren()) {
         if (n instanceof VirtualFlow) {
           // Garbage API, doesn't account for multi-element rows
-          ((VirtualFlow<?>) n).scrollTo(getItems().indexOf(getLastSelected()) / getRowLength());
+          ((VirtualFlow<?>) n).scrollTo(getItems().indexOf(item) / getRowLength());
           break;
         }
       }
     }
-
-    // Notify selection listener
-    selectionListeners.forEach(listener -> listener.pass(item));
   }
 
   /**
