@@ -9,9 +9,11 @@ import menagerie.model.menagerie.MediaItem;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
@@ -33,7 +35,10 @@ public class GridViewUtilTest extends UITest {
     ItemGridView itemGridView = getItemGridViewMock();
     // force thumbnail creation
     m.getThumbnail().want();
-    Thread.sleep(UITest.SLEEP_TIME);
+
+    await()
+        .atMost(Duration.ofMillis(UITest.MAX_WAIT_TIME))
+        .until(() -> m.getThumbnail().isLoaded());
 
     Dragboard dbMock = mock(Dragboard.class);
     GridViewUtil.doDragAndDrop(dbMock, itemGridView);
@@ -42,7 +47,7 @@ public class GridViewUtilTest extends UITest {
   }
 
   @Test
-  void testGetSelectedFiles() throws InterruptedException {
+  void testGetSelectedFiles() {
     ItemGridView itemGridView = getItemGridViewMock();
 
     List<File> selectedFiles = GridViewUtil.getSelectedFiles(itemGridView);
