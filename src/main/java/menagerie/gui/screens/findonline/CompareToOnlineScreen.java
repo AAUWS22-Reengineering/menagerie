@@ -56,6 +56,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
@@ -153,8 +154,11 @@ public class CompareToOnlineScreen extends Screen {
         File temp =
             Paths.get(System.getProperty("java.io.tmpdir")).resolve("menagerie-compare-temp")
                 .toFile();
-        if (temp.delete()) {
+        try {
+          Files.delete(temp.toPath());
           LOGGER.info("Deleted existing temp file: " + temp);
+        } catch (Exception e) {
+          LOGGER.log(Level.WARNING, "Error deleting temp file: " + temp, e);
         }
 
         File target = new File(currentItem.getFile().getAbsolutePath());
@@ -167,9 +171,12 @@ public class CompareToOnlineScreen extends Screen {
   private void moveTempToTarget(File temp, File target) {
     if (currentItem.getFile().renameTo(temp)) {
       if (tempImageFile.get().renameTo(target)) {
-        if (!temp.delete()) {
-          LOGGER.warning("Failed to delete temp file: " + temp);
+        try {
+          Files.delete(temp.toPath());
+        } catch (Exception e) {
+          LOGGER.log(Level.WARNING, "Failed to delete temp file: " + temp, e);
         }
+
         reInitCurrentItem();
         pokeSuccessListeners();
         close();
@@ -237,8 +244,13 @@ public class CompareToOnlineScreen extends Screen {
   protected void onClose() {
     File f = tempImageFile.get();
     if (f != null) {
-      if (f.exists() && !f.delete()) {
-        LOGGER.warning("Failed to delete image temp file: " + f);
+
+      if (f.exists()) {
+        try {
+          Files.delete(f.toPath());
+        } catch (Exception e) {
+          LOGGER.log(Level.WARNING, "Failed to delete image temp file: " + f, e);
+        }
       }
       tempImageFile.set(null);
     }

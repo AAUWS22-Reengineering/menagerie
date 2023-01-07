@@ -169,11 +169,7 @@ public class SplashController {
 
       @Override
       public void itemsLoading(int count, int total) {
-        long time = System.currentTimeMillis();
-        if (time - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
-          lastProgressUpdate = time;
-          Platform.runLater(() -> progressBar.setProgress((double) count / total));
-        }
+        updateProgress(count, total);
       }
 
       @Override
@@ -183,6 +179,10 @@ public class SplashController {
 
       @Override
       public void tagsLoading(int count, int total) {
+        updateProgress(count, total);
+      }
+
+      private void updateProgress(int count, int total) {
         long time = System.currentTimeMillis();
         if (time - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
           lastProgressUpdate = time;
@@ -205,11 +205,7 @@ public class SplashController {
 
       @Override
       public void nonDupeLoading(int count, int total) {
-        long time = System.currentTimeMillis();
-        if (time - lastProgressUpdate > PROGRESS_UPDATE_INTERVAL) {
-          lastProgressUpdate = time;
-          Platform.runLater(() -> progressBar.setProgress((double) count / total));
-        }
+        updateProgress(count, total);
       }
     };
   }
@@ -260,7 +256,7 @@ public class SplashController {
       database = DriverManager.getConnection("jdbc:h2:" + settings.dbUrl.getValue(),
           settings.dbUser.getValue(), settings.dbPass.getValue());
     } catch (SQLException e) {
-      LOGGER.log(Level.SEVERE, "Error connecting to database: " + settings.dbUrl.getValue(), e);
+      LOGGER.log(Level.SEVERE, String.format("Error connecting to database: %s", settings.dbUrl.getValue()), e);
       Platform.runLater(() -> {
         Main.showErrorMessage("Error connecting to database",
             "Database is most likely open in another application", e.getLocalizedMessage());

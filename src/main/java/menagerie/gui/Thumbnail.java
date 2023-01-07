@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -258,8 +259,8 @@ public class Thumbnail {
 
         mediaPlayer.controls().stop();
       }
-    } catch (Throwable t) {
-      LOGGER.log(Level.WARNING, "Error while trying to create video thumbnail: " + file, t);
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "Error while trying to create video thumbnail: " + file, e);
       Thread.currentThread().interrupt();
     }
   }
@@ -273,8 +274,11 @@ public class Thumbnail {
       return false;
     }
     image = new Image(tempFile.toURI().toString());
-    if (!tempFile.delete()) {
-      LOGGER.warning("Failed to delete tempfile: " + tempFile);
+    try {
+      Files.delete(tempFile.toPath());
+    }
+    catch (Exception ex) {
+      LOGGER.log(Level.WARNING, "Failed to delete tempfile: " + tempFile, ex);
     }
 
     synchronized (imageReadyListeners) {

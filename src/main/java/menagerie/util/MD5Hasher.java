@@ -43,6 +43,9 @@ public abstract class MD5Hasher {
 
   private static MessageDigest digest;
 
+  private MD5Hasher() {
+  }
+
   /**
    * Reads a file and calculates an MD5 hash representing it.
    *

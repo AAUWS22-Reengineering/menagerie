@@ -1,9 +1,5 @@
 package menagerie.model.menagerie.importer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
@@ -11,6 +7,11 @@ import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
 import menagerie.settings.MenagerieSettings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 public class DuplicateFinder {
 
@@ -37,17 +38,15 @@ public class DuplicateFinder {
     LOGGER.info("Checking for hash duplicates: " + item.getId());
     for (Item i : menagerie.getItems()) {
       Optional<ItemSimilarity> itemSim = Items.get(ItemSimilarity.class, i);
-      if (itemSim.isPresent()) {
-        if (itemSim.get().isExactDuplicate(item, i)) {
-          synchronized (this) {
-            duplicateOf = (MediaItem) i;
-          }
-          LOGGER.info("Found hash duplicate, cancelling import: " + item.getId());
-          menagerie.deleteItem(item);
-          needsCheckDuplicate = false;
-          needsCheckSimilar = false;
-          return true;
+      if (itemSim.isPresent() && itemSim.get().isExactDuplicate(item, i)) {
+        synchronized (this) {
+          duplicateOf = (MediaItem) i;
         }
+        LOGGER.info("Found hash duplicate, cancelling import: " + item.getId());
+        menagerie.deleteItem(item);
+        needsCheckDuplicate = false;
+        needsCheckSimilar = false;
+        return true;
       }
     }
 

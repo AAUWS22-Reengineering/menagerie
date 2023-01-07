@@ -26,22 +26,26 @@ package menagerie.util;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.util.Duration;
+import menagerie.settings.Settings;
 
 /**
  * Originally contributed by Jason Pollastrini, with changes.
  */
 public abstract class NanoTimer extends ScheduledService<Void> {
 
+  private static final Logger LOGGER = Logger.getLogger(NanoTimer.class.getName());
+
   private static final long ONE_NANO = 1000000000L;
 
   private long startTime;
 
   private long previousTime;
-
-  private double frameRate;
 
   private double deltaTime;
 
@@ -87,7 +91,6 @@ public abstract class NanoTimer extends ScheduledService<Void> {
 
   private void updateTimer() {
     deltaTime = (getTime() - previousTime) * (1.0f / ONE_NANO);
-    frameRate = 1.0f / deltaTime;
     previousTime = getTime();
   }
 
@@ -99,11 +102,11 @@ public abstract class NanoTimer extends ScheduledService<Void> {
 
   @Override
   protected final void failed() {
-    getException().printStackTrace(System.err);
+    LOGGER.log(Level.SEVERE, "NanoTimer failed", getException());
     onFailed();
   }
 
-  private class NanoThreadFactory implements ThreadFactory {
+  private static class NanoThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable runnable) {

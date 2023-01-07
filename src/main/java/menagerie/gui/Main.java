@@ -25,17 +25,6 @@
 package menagerie.gui;
 
 import com.sun.jna.NativeLibrary;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -50,6 +39,14 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.LinuxNativeDiscoveryStrateg
 import uk.co.caprica.vlcj.factory.discovery.strategy.OsxNativeDiscoveryStrategy;
 import uk.co.caprica.vlcj.factory.discovery.strategy.WindowsNativeDiscoveryStrategy;
 import uk.co.caprica.vlcj.support.version.LibVlcVersion;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.*;
 
 public class Main extends Application {
 
@@ -85,10 +82,11 @@ public class Main extends Application {
   public static void main(String[] args) {
     initMenagerieLogger();
 
-    MENAGERIE_LOGGER.info("\n" +
-                          "===============================================================================================================\n" +
-                          "========================================== Starting Menagerie =================================================\n" +
-                          "===============================================================================================================");
+    MENAGERIE_LOGGER.info("""
+
+        ===============================================================================================================
+        ========================================== Starting Menagerie =================================================
+        ===============================================================================================================""");
 
     // Log some simple system info
     if (Runtime.getRuntime().maxMemory() == Long.MAX_VALUE) {
@@ -120,7 +118,7 @@ public class Main extends Application {
 
     // Init logger handler
     Thread.setDefaultUncaughtExceptionHandler(
-        (t, e) -> MENAGERIE_LOGGER.log(Level.SEVERE, "Uncaught exception in thread: " + t, e));
+        (t, e) -> MENAGERIE_LOGGER.log(Level.SEVERE, String.format("Uncaught exception in thread: %s", t), e));
     MENAGERIE_LOGGER.setUseParentHandlers(false);
     Formatter formatter = new Formatter() {
       final DateFormat dateFormat =
@@ -248,30 +246,18 @@ public class Main extends Application {
         MENAGERIE_LOGGER.config("Loaded LibVLC Version: " + new LibVlcVersion().getVersion());
         vlcjLoaded = true;
         break;
-      } catch (Throwable t) {
-        MENAGERIE_LOGGER.log(Level.WARNING, "Failed to load libvlc with path: " + p, t);
+      } catch (Exception e) {
+        MENAGERIE_LOGGER.log(Level.WARNING, String.format("Failed to load libvlc with path: %s", p), e);
       }
     }
   }
 
   private List<Image> getIcons() {
     List<Image> results = new ArrayList<>();
-    try {
-      results.add(new Image(getClass().getResourceAsStream("/icons/128.png")));
-    } catch (NullPointerException ignored) {
-    }
-    try {
-      results.add(new Image(getClass().getResourceAsStream("/icons/64.png")));
-    } catch (NullPointerException ignored) {
-    }
-    try {
-      results.add(new Image(getClass().getResourceAsStream("/icons/32.png")));
-    } catch (NullPointerException ignored) {
-    }
-    try {
-      results.add(new Image(getClass().getResourceAsStream("/icons/16.png")));
-    } catch (NullPointerException ignored) {
-    }
+    results.add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icons/128.png"))));
+    results.add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icons/64.png"))));
+    results.add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icons/32.png"))));
+    results.add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/icons/16.png"))));
 
     return results;
   }

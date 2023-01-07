@@ -223,7 +223,7 @@ public class ImageHistogram {
   private static double[] inputStreamAsArray(InputStream in) throws IOException {
     byte[] b = new byte[BIN_SIZE * 8];
     if (in.read(b) != BIN_SIZE * 8) {
-      return null;
+      throw new IOException("invalid stream input data size");
     }
 
     ByteBuffer bb = ByteBuffer.wrap(b);

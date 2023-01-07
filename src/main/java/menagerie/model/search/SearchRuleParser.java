@@ -13,6 +13,9 @@ public abstract class SearchRuleParser {
 
   private static final Logger LOGGER = Logger.getLogger(Search.class.getName());
 
+  private SearchRuleParser() {
+  }
+
   public static List<SearchRule> parseRules(String search) {
     // this would be a test str"ing that doesn't tokenize the "quotes
     // This would be a test "string that DOES tokenize the quotes"

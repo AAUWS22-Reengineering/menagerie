@@ -512,9 +512,6 @@ public class DynamicVideoView extends StackPane {
     double width = canvas.getWidth();
     double height = canvas.getHeight();
 
-    //        g.setFill(new Color(0, 0, 0, 1));
-    //        g.fillRect(0, 0, width, height);
-
     if (img != null) {
       double imageWidth = img.getWidth();
       double imageHeight = img.getHeight();

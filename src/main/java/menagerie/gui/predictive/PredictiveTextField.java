@@ -24,8 +24,6 @@
 
 package menagerie.gui.predictive;
 
-import java.util.Collections;
-import java.util.List;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -34,6 +32,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+
+import java.util.Collections;
+import java.util.List;
 
 public class PredictiveTextField extends TextField {
 
@@ -139,13 +140,11 @@ public class PredictiveTextField extends TextField {
   }
 
   private void eventFilterKeyTabPressed(KeyEvent event) {
-    if (selectedIndex < 0) {
-      if (event.isControlDown() || event.getCode() == KeyCode.TAB) {
-        if (top) {
-          selectedIndex = vBox.getChildren().size() - 1;
-        } else {
-          selectedIndex = 0;
-        }
+    if (selectedIndex < 0 && event.isControlDown() || event.getCode() == KeyCode.TAB) {
+      if (top) {
+        selectedIndex = vBox.getChildren().size() - 1;
+      } else {
+        selectedIndex = 0;
       }
     }
 
@@ -207,7 +206,7 @@ public class PredictiveTextField extends TextField {
       if (i == selectedIndex) {
         ((PredictivePopupCell) vBox.getChildren().get(i)).setSelected(true);
       } else if (selectedIndex < 0 &&
-                 ((i == 0 && !top) || (i == vBox.getChildren().size() - 1 && top))) {
+          ((i == 0 && !top) || (i == vBox.getChildren().size() - 1 && top))) {
         ((PredictivePopupCell) vBox.getChildren().get(i)).setSelectedUnfocused(true);
       }
     }

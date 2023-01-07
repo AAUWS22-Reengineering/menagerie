@@ -373,11 +373,7 @@ public class FindOnlineScreen extends Screen {
 
     matches.clear();
     for (MediaItem item : items) {
-      MatchGroup match = matchMap.get(item);
-      if (match == null) {
-        match = new MatchGroup(item);
-        matchMap.put(item, match);
-      }
+      MatchGroup match = matchMap.computeIfAbsent(item, MatchGroup::new);
       matches.add(match);
     }
 

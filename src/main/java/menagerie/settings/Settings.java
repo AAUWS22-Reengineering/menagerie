@@ -43,7 +43,7 @@ public class Settings {
   private static final String VERSION_KEY = "version";
   private static final String SETTINGS_KEY = "settings";
 
-  private final List<Setting> settings = new ArrayList<>();
+  private final List<Setting> storedSettings = new ArrayList<>();
   private final int version = 1;
 
 
@@ -74,7 +74,7 @@ public class Settings {
   }
 
   public Setting getSetting(String identifier) {
-    for (Setting setting : settings) {
+    for (Setting setting : storedSettings) {
       if (setting.getID().equalsIgnoreCase(identifier)) {
         return setting;
       } else if (setting instanceof GroupSetting) {
@@ -93,7 +93,7 @@ public class Settings {
   }
 
   public List<Setting> getSettings() {
-    return settings;
+    return storedSettings;
   }
 
   public int getVersion() {
@@ -124,14 +124,14 @@ public class Settings {
 
   @Override
   public int hashCode() {
-    return Objects.hash(settings, version);
+    return Objects.hash(storedSettings, version);
   }
 
   public void save(File file) throws IOException {
     JSONObject json = new JSONObject();
     json.put(VERSION_KEY, getVersion());
 
-    for (Setting setting : settings) {
+    for (Setting setting : storedSettings) {
       json.append(SETTINGS_KEY, setting.toJSON());
     }
 

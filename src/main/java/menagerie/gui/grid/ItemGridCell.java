@@ -45,6 +45,8 @@ import menagerie.model.menagerie.Item;
 import menagerie.util.listeners.ObjectListener;
 import org.controlsfx.control.GridCell;
 
+import java.util.Objects;
+
 
 public class ItemGridCell extends GridCell<Item> {
 
@@ -116,10 +118,10 @@ public class ItemGridCell extends GridCell<Item> {
     tagView.setTranslateY(-5);
     StackPane.setAlignment(tagView, Pos.BOTTOM_LEFT);
     if (groupTagImage == null) {
-      groupTagImage = new Image(getClass().getResource("/misc/group_tag.png").toString());
+      groupTagImage = new Image(Objects.requireNonNull(getClass().getResource("/misc/group_tag.png")).toString());
     }
     if (videoTagImage == null) {
-      videoTagImage = new Image(getClass().getResource("/misc/video_tag.png").toString());
+      videoTagImage = new Image(Objects.requireNonNull(getClass().getResource("/misc/video_tag.png")).toString());
     }
 
     setGraphic(new StackPane(thumbnailView, centerLabel, bottomRightLabel, tagView));

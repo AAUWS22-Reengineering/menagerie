@@ -164,6 +164,7 @@ public class TagListScreen extends Screen {
         listView.getItems().add(t);
       }
     } catch (PatternSyntaxException ignore) {
+      // not handled
     }
   }
 

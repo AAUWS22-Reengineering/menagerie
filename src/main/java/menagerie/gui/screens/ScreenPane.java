@@ -24,9 +24,8 @@
 
 package menagerie.gui.screens;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
@@ -38,7 +37,7 @@ import javafx.scene.layout.StackPane;
 public class ScreenPane extends StackPane {
 
   private final Map<Screen, Node> lastFocusMap = new HashMap<>();
-  private final Stack<Screen> openStack = new Stack<>();
+  private final Deque<Screen> openStack = new ArrayDeque<>();
   private final ObjectProperty<Screen> current = new SimpleObjectProperty<>(null);
 
 
@@ -81,7 +80,7 @@ public class ScreenPane extends StackPane {
   public boolean close(Screen screen) {
     if (getChildren().contains(screen)) {
       if (screen.equals(current.get())) {
-        if (openStack.empty()) {
+        if (openStack.isEmpty()) {
           current.set(null);
         } else {
           current.set(openStack.pop());

@@ -51,6 +51,8 @@ public class CUDADuplicateFinder {
   public static final String KERNEL_FUNCTION_NAME =
       "_Z14histDupeKernelPKfS0_S0_S0_PiS1_S1_S1_PfS1_iii";
 
+  private CUDADuplicateFinder() {
+  }
 
   /**
    * Uses a CUDA device to find similar pairs of items based on their histograms.

@@ -225,7 +225,6 @@ public class ImportDialogScreen extends Screen {
   }
 
   private void saveSettings() {
-    System.out.println(orderChoiceBox.getValue());
     settings.importOrder.setValue(orderChoiceBox.getValue().name());
     if (lastFolder != null) {
       settings.lastImportFolder.setValue(lastFolder.getAbsolutePath());

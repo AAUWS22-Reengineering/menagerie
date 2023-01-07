@@ -1034,7 +1034,10 @@ public class MainController {
     ItemUtil.addGroupElements(items);
     stopPreview(items);
     new ConfirmationScreen().open(screenPane, "Forget files", String.format(
-        "Remove selected files from database? (%d files)\n\n" + "This action CANNOT be undone",
+        """
+            Remove selected files from database? (%d files)
+
+            This action CANNOT be undone""",
         items.size()), () -> menagerie.forgetItems(items), null);
   }
 
@@ -1747,6 +1750,7 @@ public class MainController {
         event.consume();
       }
       default -> {
+        // nothing
       }
     }
   }
