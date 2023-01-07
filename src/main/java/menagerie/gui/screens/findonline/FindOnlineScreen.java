@@ -291,44 +291,52 @@ public class FindOnlineScreen extends Screen {
           blockUntilItemChanges();
         } else {
           if (item.getStatus() == MatchGroup.Status.WAITING) {
-            item.retrieveMatches(finders);
-            Platform.runLater(() -> {
-              if (getCurrentMatch().equals(item)) {
-                displayMatches(item);
-              }
-            });
+            handleWaitingItem(item);
           } else {
-            for (int shift = 1; shift <= loadAhead.get(); shift++) {
-              MatchGroup next = null;
-
-              synchronized (matches) {
-                int i = matches.indexOf(item);
-                if (i + shift < matches.size()) {
-                  next = matches.get(i + shift);
-                }
-              }
-
-              if (next != null && next.getStatus() == MatchGroup.Status.WAITING) {
-                next.retrieveMatches(finders);
-                MatchGroup finalNext = next;
-                Platform.runLater(() -> {
-                  if (finalNext.equals(getCurrentMatch())) {
-                    displayMatches(finalNext);
-                  }
-                });
-                break;
-              }
-
-              if (shift == loadAhead.get()) {
-                blockUntilItemChanges();
-              }
-            }
+            handleNonWaitingItem(item);
           }
         }
       }
     }, "FindOnline Searcher");
     searcherThread.setDaemon(true);
     searcherThread.start();
+  }
+
+  private void handleNonWaitingItem(MatchGroup item) {
+    for (int shift = 1; shift <= loadAhead.get(); shift++) {
+      MatchGroup next = null;
+
+      synchronized (matches) {
+        int i = matches.indexOf(item);
+        if (i + shift < matches.size()) {
+          next = matches.get(i + shift);
+        }
+      }
+
+      if (next != null && next.getStatus() == MatchGroup.Status.WAITING) {
+        next.retrieveMatches(finders);
+        MatchGroup finalNext = next;
+        Platform.runLater(() -> {
+          if (finalNext.equals(getCurrentMatch())) {
+            displayMatches(finalNext);
+          }
+        });
+        break;
+      }
+
+      if (shift == loadAhead.get()) {
+        blockUntilItemChanges();
+      }
+    }
+  }
+
+  private void handleWaitingItem(MatchGroup item) {
+    item.retrieveMatches(finders);
+    Platform.runLater(() -> {
+      if (getCurrentMatch().equals(item)) {
+        displayMatches(item);
+      }
+    });
   }
 
   private void blockUntilItemChanges() {
@@ -409,21 +417,7 @@ public class FindOnlineScreen extends Screen {
   }
 
   private void displayMatch(MatchGroup item) {
-    synchronized (currentMatch) {
-      if (currentMatch.get() != null && !currentMatch.get().getItem().getThumbnail().isLoaded()) {
-        currentMatch.get().getItem().getThumbnail().doNotWant();
-      }
-      currentMatch.set(item);
-    }
-    matchGridView.getItems().clear();
-    yourImageInfoLabel.setText("N/A");
-    tagListView.getItems().clear();
-
-    final int i = matches.indexOf(item);
-    nextButton.setDisable(i + 1 >= matches.size());
-    prevButton.setDisable(i == 0);
-    indexTextField.setText((i + 1) + "");
-    indexLabel.setText("/" + matches.size());
+    initMatchDisplay(item);
 
     if (item != null) {
       setThumbnail(item.getItem());
@@ -447,6 +441,24 @@ public class FindOnlineScreen extends Screen {
         matchesStackPane.getChildren().remove(failedVBox);
       }
     }
+  }
+
+  private void initMatchDisplay(MatchGroup item) {
+    synchronized (currentMatch) {
+      if (currentMatch.get() != null && !currentMatch.get().getItem().getThumbnail().isLoaded()) {
+        currentMatch.get().getItem().getThumbnail().doNotWant();
+      }
+      currentMatch.set(item);
+    }
+    matchGridView.getItems().clear();
+    yourImageInfoLabel.setText("N/A");
+    tagListView.getItems().clear();
+
+    final int i = matches.indexOf(item);
+    nextButton.setDisable(i + 1 >= matches.size());
+    prevButton.setDisable(i == 0);
+    indexTextField.setText((i + 1) + "");
+    indexLabel.setText("/" + matches.size());
   }
 
   private void setThumbnail(MediaItem item) {

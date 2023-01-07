@@ -92,38 +92,42 @@ public class OldSettings {
             }
           LOGGER.config("Settings read line: " + line);
 
-          try {
-            final int firstColonIndex = line.indexOf(':');
-            final int secondColonIndex = line.indexOf(':', firstColonIndex + 1);
-            final Key key = keyFromName(line.substring(0, firstColonIndex));
-            final String typeName = line.substring(firstColonIndex + 1, secondColonIndex);
-            final String valueString = line.substring(secondColonIndex + 1);
-
-            if (key == null) {
-              LOGGER.warning("Settings tried to load unknown key in line: " + line);
-              continue;
-            }
-
-            if (typeName.equalsIgnoreCase("BOOLEAN")) {
-              setBoolean(key, Boolean.parseBoolean(valueString));
-            } else if (typeName.equalsIgnoreCase("STRING")) {
-              setString(key, valueString);
-            } else if (typeName.equalsIgnoreCase("DOUBLE")) {
-              setDouble(key, Double.parseDouble(valueString));
-            } else if (typeName.equalsIgnoreCase("INTEGER")) {
-              setInt(key, Integer.parseInt(valueString));
-            } else {
-              LOGGER.warning("Settings tried to load unknown type from line: " + line);
-            }
-          } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Error trying to read settings line: " + line);
-          }
+          tryLoadSetting(line);
         }
 
         scan.close();
       } catch (IOException e) {
         LOGGER.log(Level.WARNING, "Error trying to read settings file: " + file, e);
       }
+    }
+  }
+
+  private void tryLoadSetting(String line) {
+    try {
+      final int firstColonIndex = line.indexOf(':');
+      final int secondColonIndex = line.indexOf(':', firstColonIndex + 1);
+      final Key key = keyFromName(line.substring(0, firstColonIndex));
+      final String typeName = line.substring(firstColonIndex + 1, secondColonIndex);
+      final String valueString = line.substring(secondColonIndex + 1);
+
+      if (key == null) {
+        LOGGER.warning("Settings tried to load unknown key in line: " + line);
+        return;
+      }
+
+      if (typeName.equalsIgnoreCase("BOOLEAN")) {
+        setBoolean(key, Boolean.parseBoolean(valueString));
+      } else if (typeName.equalsIgnoreCase("STRING")) {
+        setString(key, valueString);
+      } else if (typeName.equalsIgnoreCase("DOUBLE")) {
+        setDouble(key, Double.parseDouble(valueString));
+      } else if (typeName.equalsIgnoreCase("INTEGER")) {
+        setInt(key, Integer.parseInt(valueString));
+      } else {
+        LOGGER.warning("Settings tried to load unknown type from line: " + line);
+      }
+    } catch (Exception e) {
+      LOGGER.log(Level.WARNING, "Error trying to read settings line: " + line);
     }
   }
 

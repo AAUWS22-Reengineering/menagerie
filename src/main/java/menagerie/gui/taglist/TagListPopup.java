@@ -62,20 +62,7 @@ public class TagListPopup extends Popup {
 
     noteListView.setCellFactory(param -> {
       NoteListCell c = new NoteListCell();
-      c.setOnMouseClicked(event -> {
-        if (event.getButton() == MouseButton.PRIMARY && isURL(c.getItem())) {
-          try {
-            Desktop.getDesktop().browse(new URI(c.getItem()));
-          } catch (IOException | URISyntaxException e) {
-            try {
-              Desktop.getDesktop().browse(new URI("https://" + c.getItem()));
-            } catch (IOException | URISyntaxException e2) {
-              LOGGER.log(Level.SEVERE,
-                  String.format("Exception when opening \"%s\" in browser", c.getItem()), e2);
-            }
-          }
-        }
-      });
+      setupClickListener(c);
       MenuItem delete = new MenuItem("Delete note");
       delete.setOnAction(event -> {
         if (tag.removeNote(c.getItem())) {
@@ -87,6 +74,23 @@ public class TagListPopup extends Popup {
           event -> cm.show(c.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
       c.maxWidthProperty().bind(noteListView.widthProperty().subtract(20));
       return c;
+    });
+  }
+
+  private void setupClickListener(NoteListCell c) {
+    c.setOnMouseClicked(event -> {
+      if (event.getButton() == MouseButton.PRIMARY && isURL(c.getItem())) {
+        try {
+          Desktop.getDesktop().browse(new URI(c.getItem()));
+        } catch (IOException | URISyntaxException e) {
+          try {
+            Desktop.getDesktop().browse(new URI("https://" + c.getItem()));
+          } catch (IOException | URISyntaxException e2) {
+            LOGGER.log(Level.SEVERE,
+                String.format("Exception when opening \"%s\" in browser", c.getItem()), e2);
+          }
+        }
+      }
     });
   }
 

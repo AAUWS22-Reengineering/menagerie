@@ -80,56 +80,60 @@ public class DatabaseVersionUpdater {
       version = initializeTables(db);
     }
     if (version == 0) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV0ToV1(db);
       version++;
     }
     if (version == 1) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV1ToV2(db);
       version++;
     }
     if (version == 2) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV2ToV3(db);
       version++;
     }
     if (version == 3) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV3ToV4(db);
       version++;
     }
     if (version == 4) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV4ToV5(db);
       version++;
     }
     if (version == 5) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV5ToV6(db);
       version++;
     }
     if (version == 6) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV6ToV7(db);
       version++;
     }
     if (version == 7) {
-      LOGGER.warning(
-          "!!! Database needs to update from v" + version + " to v" + (version + 1) + " !!!");
+      logUpdateWarning(version);
       updateFromV7ToV8(db);
       version++;
     }
     if (version == 8) {
       LOGGER.info("Database is up to date");
     }
+  }
+
+  private static void logUpdateWarning(int oldVersion) {
+    LOGGER.warning("!!! Database needs to update from v" + oldVersion + " to v" + (oldVersion + 1) + " !!!");
+  }
+
+  private static void logUpdateTime(double updateTime) {
+    LOGGER.info("Finished updating database in: " + updateTime + "s");
+  }
+
+  private static void logSettingDatabaseVersion() {
+    LOGGER.info("Setting database version");
   }
 
   /**
@@ -296,8 +300,7 @@ public class DatabaseVersionUpdater {
       //------------------------------------ Done Updating -----------------------------------------------------------
     }
 
-    LOGGER.info(
-        "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+    logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
 
   }
 
@@ -322,8 +325,7 @@ public class DatabaseVersionUpdater {
       //Update version table
       s.executeUpdate("INSERT INTO version(version) VALUES (2);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -361,11 +363,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate(
           "ALTER TABLE media ADD FOREIGN KEY (gid) REFERENCES groups(id) ON DELETE SET NULL;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (3);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -382,11 +383,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Adding 'color' column to 'tags' table");
       s.executeUpdate("ALTER TABLE tags ADD COLUMN color NVARCHAR(32);");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (4)");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -400,11 +400,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate("DROP TABLE tag_notes;");
       s.executeUpdate("ALTER TABLE tag_notes2 RENAME TO tag_notes;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (5);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -415,11 +414,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Adding 'no_similar' column to 'media'");
       s.executeUpdate("ALTER TABLE media ADD COLUMN no_similar BOOL NOT NULL DEFAULT FALSE;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (6);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -430,11 +428,10 @@ public class DatabaseVersionUpdater {
       LOGGER.info("Dropping thumbnail column from media");
       s.executeUpdate("ALTER TABLE media DROP COLUMN thumbnail;");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (7);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 
@@ -446,11 +443,10 @@ public class DatabaseVersionUpdater {
       s.executeUpdate(
           "CREATE TABLE non_dupes(item_1 INT, item_2 INT, FOREIGN KEY (item_1) REFERENCES items(id) ON DELETE CASCADE, FOREIGN KEY (item_2) REFERENCES items(id) ON DELETE CASCADE);");
 
-      LOGGER.info("Setting database version");
+      logSettingDatabaseVersion();
       s.executeUpdate("INSERT INTO version(version) VALUES (8);");
 
-      LOGGER.info(
-          "Finished updating database in: " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+      logUpdateTime((System.currentTimeMillis() - t) / 1000.0);
     }
   }
 

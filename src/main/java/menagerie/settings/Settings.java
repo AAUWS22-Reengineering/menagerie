@@ -132,7 +132,7 @@ public class Settings {
     json.put(VERSION_KEY, getVersion());
 
     for (Setting setting : settings) {
-      json.append("settings", setting.toJSON());
+      json.append(SETTINGS_KEY, setting.toJSON());
     }
 
     try (FileWriter fw = new FileWriter(file)) {
