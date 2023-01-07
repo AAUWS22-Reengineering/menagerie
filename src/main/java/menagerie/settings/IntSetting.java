@@ -148,6 +148,7 @@ public class IntSetting extends Setting {
           }
           setValue(v);
         } catch (NumberFormatException ignore) {
+          // ignore
         }
 
         spinner.getValueFactory().setValue(getValue());

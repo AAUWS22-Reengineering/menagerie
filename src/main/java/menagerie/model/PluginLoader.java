@@ -24,6 +24,8 @@
 
 package menagerie.model;
 
+import menagerie.MenageriePlugin;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -35,18 +37,18 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import menagerie.MenageriePlugin;
 
 public abstract class PluginLoader {
 
   private static final Logger LOGGER = Logger.getLogger(PluginLoader.class.getName());
 
+  private PluginLoader() {
+  }
+
   public static List<MenageriePlugin> loadPlugins(File folder) {
-    if (!folder.exists() || !folder.isDirectory()) {
-      if (!folder.mkdirs()) {
-        LOGGER.severe("Unable to find/create plugin directory: " + folder.getAbsolutePath());
-        return new ArrayList<>();
-      }
+    if ((!folder.exists() || !folder.isDirectory()) && !folder.mkdirs()) {
+      LOGGER.severe("Unable to find/create plugin directory: " + folder.getAbsolutePath());
+      return new ArrayList<>();
     }
 
     List<URL> urls = new ArrayList<>();
@@ -65,8 +67,7 @@ public abstract class PluginLoader {
           LOGGER.log(Level.SEVERE, "Failed to load plugin class: " + className, e);
         }
       });
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       LOGGER.log(Level.SEVERE, "Failed to close URLClassLoader", ex);
     }
 

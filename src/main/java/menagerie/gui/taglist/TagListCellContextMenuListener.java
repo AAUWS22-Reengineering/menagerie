@@ -65,6 +65,7 @@ public class TagListCellContextMenuListener implements EventHandler<ContextMenuE
             try {
               Desktop.getDesktop().browse(new URI("https://" + c.getItem()));
             } catch (IOException | URISyntaxException ignore) {
+              // not handled
             }
           }
         });

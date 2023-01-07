@@ -160,8 +160,8 @@ public class ItemGridCell extends GridCell<Item> {
         getItem().getThumbnail().removeImageReadyListener(imageReadyListener);
       }
       Object obj = getItem().getMetadata().get(SELECTED);
-      if (obj instanceof BooleanProperty) {
-        ((BooleanProperty) obj).removeListener(selectedListener);
+      if (obj instanceof BooleanProperty prop) {
+        prop.removeListener(selectedListener);
       }
 
       Items.get(ItemCellHandler.class, getItem()).ifPresent(itemCellHandler ->
@@ -204,12 +204,12 @@ public class ItemGridCell extends GridCell<Item> {
    */
   private void initSelected(Item item) {
     Object obj = item.getMetadata().get(SELECTED);
-    if (obj instanceof BooleanProperty) {
-      updateSelected(((BooleanProperty) obj).get());
-      ((BooleanProperty) obj).addListener(selectedListener);
+    if (obj instanceof BooleanProperty prop) {
+      updateSelected(prop.get());
+      prop.addListener(selectedListener);
     } else {
-      final boolean sel = getGridView() instanceof ItemGridView &&
-          ((ItemGridView) getGridView()).isSelected(item);
+      final boolean sel = getGridView() instanceof ItemGridView gridView &&
+          gridView.isSelected(item);
       BooleanProperty prop = new SimpleBooleanProperty(sel);
       prop.addListener(selectedListener);
       item.getMetadata().put(SELECTED, prop);

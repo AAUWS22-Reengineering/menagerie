@@ -556,7 +556,7 @@ public class MainController {
             folderWatcherThread.stopWatching();
           }
 
-          if (newValue) {
+          if (Boolean.TRUE.equals(newValue)) {
             startWatchingFolderForImages(settings.autoImportFolder.getValue(),
                 settings.autoImportMove.getValue());
           }
@@ -784,11 +784,8 @@ public class MainController {
         itemGridView.getSelected().forEach(item -> list.add((MediaItem) item));
         list.sort(Comparator.comparingInt(MediaItem::getPageIndex));
 
-        boolean before = false;
-        if (c.sceneToLocal(event.getSceneX(), event.getSceneY()).getX() <
-            (double) Thumbnail.THUMBNAIL_SIZE / 2) {
-          before = true;
-        }
+        boolean before = c.sceneToLocal(event.getSceneX(), event.getSceneY()).getX() <
+            (double) Thumbnail.THUMBNAIL_SIZE / 2;
         if (currentSearch.isDescending()) {
           before = !before;
         }
@@ -850,7 +847,7 @@ public class MainController {
     rootPaneSettings.bind();
 
     stage.focusedProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue) {
+      if (!Boolean.TRUE.equals(newValue)) {
         if (previewMediaView.isPlaying()) {
           previewMediaView.pause();
           playVideoAfterFocusGain = true;
@@ -1212,8 +1209,8 @@ public class MainController {
   private void cleanupPreviousSearch() {
     if (currentSearch != null) {
       GroupItem scope = null;
-      if (currentSearch instanceof GroupSearch) {
-        scope = ((GroupSearch) currentSearch).getGroup();
+      if (currentSearch instanceof GroupSearch currentSearch) {
+        scope = currentSearch.getGroup();
       }
       searchHistory.push(
           new SearchHistory(currentSearch.getSearchString(), scope, itemGridView.getSelected(),
@@ -1372,8 +1369,8 @@ public class MainController {
 
   private void searchOnAction(ActionEvent event) {
     GroupItem scope = null;
-    if (currentSearch instanceof GroupSearch) {
-      scope = ((GroupSearch) currentSearch).getGroup();
+    if (currentSearch instanceof GroupSearch currentSearch) {
+      scope = currentSearch.getGroup();
     }
     applySearch(searchTextField.getText(), scope, listDescendingToggleButton.isSelected(),
         showGroupedToggleButton.isSelected(), shuffledSearchButton.isSelected());
@@ -1533,9 +1530,6 @@ public class MainController {
 
     target = fc.showSaveDialog(rootPane.getScene().getWindow());
 
-    if (target == null) {
-      return null;
-    }
     return target;
   }
 
@@ -1560,7 +1554,7 @@ public class MainController {
   }
 
   private void explorerRootPaneDisabledChanged(Boolean newValue) {
-    if (newValue) {
+    if (Boolean.TRUE.equals(newValue)) {
       if (previewMediaView.isPlaying()) {
         previewMediaView.pause();
         playVideoAfterExplorerEnabled = true;

@@ -248,69 +248,7 @@ public class ImportDialogScreen extends Screen {
 
   private void importOnAction() {
     ProgressScreen ps = new ProgressScreen();
-    CancellableThread ct = new CancellableThread() {
-      @Override
-      public void run() {
-        updateProgress();
-
-        if (running) {
-          sortFiles();
-
-          GroupItem group = createGroup();
-
-          for (File file : files) {
-            final ImportJob job = new LocalImportJob(file, group);
-            final List<String> tagsToAdd = getTagsToAdd(file);
-
-            final boolean renameToHash = renameWithHashCheckBox.isSelected();
-
-            if (!tagsToAdd.isEmpty() || renameToHash) {
-              addRenameToHashListener(job, tagsToAdd, renameToHash);
-            }
-
-            importer.addJob(job);
-          }
-        }
-
-        saveSettings();
-        Platform.runLater(() -> {
-          ps.close();
-          close();
-        });
-      }
-
-      private void updateProgress() {
-        int processed = 0;
-        int total = files.size();
-        for (int i = 0; i < files.size(); i++) {
-          if (!running) {
-            break;
-          }
-
-          final int finalNum = processed;
-          final int finalTotal = total;
-          Platform.runLater(() -> ps.setProgress(finalNum, finalTotal));
-          processed++;
-
-          File file = files.get(i);
-
-          if (file.isDirectory()) {
-            for (File f2 : Objects.requireNonNull(file.listFiles())) {
-              if (Filters.FILE_NAME_FILTER.accept(f2) ||
-                  (recursiveCheckBox.isSelected() && f2.isDirectory())) {
-                files.add(f2);
-                total++;
-              }
-            }
-            files.remove(i);
-            i--;
-          } else if (!Filters.FILE_NAME_FILTER.accept(file) || menagerie.isFilePresent(file)) {
-            files.remove(i);
-            i--;
-          }
-        }
-      }
-    };
+    CancellableThread ct = new ImportThread(ps);
 
     openAndStart(ps, ct);
   }
@@ -424,4 +362,73 @@ public class ImportDialogScreen extends Screen {
     createGroupTextField.setText(name);
   }
 
+  private class ImportThread extends CancellableThread {
+    private final ProgressScreen ps;
+
+    public ImportThread(ProgressScreen ps) {
+      this.ps = ps;
+    }
+
+    @Override
+    public void run() {
+      updateProgress();
+
+      if (running) {
+        sortFiles();
+
+        GroupItem group = createGroup();
+
+        for (File file : files) {
+          final ImportJob job = new LocalImportJob(file, group);
+          final List<String> tagsToAdd = getTagsToAdd(file);
+
+          final boolean renameToHash = renameWithHashCheckBox.isSelected();
+
+          if (!tagsToAdd.isEmpty() || renameToHash) {
+            addRenameToHashListener(job, tagsToAdd, renameToHash);
+          }
+
+          importer.addJob(job);
+        }
+      }
+
+      saveSettings();
+      Platform.runLater(() -> {
+        ps.close();
+        close();
+      });
+    }
+
+    private void updateProgress() {
+      int processed = 0;
+      int total = files.size();
+      for (int i = 0; i < files.size(); i++) {
+        if (!running) {
+          break;
+        }
+
+        final int finalNum = processed;
+        final int finalTotal = total;
+        Platform.runLater(() -> ps.setProgress(finalNum, finalTotal));
+        processed++;
+
+        File file = files.get(i);
+
+        if (file.isDirectory()) {
+          for (File f2 : Objects.requireNonNull(file.listFiles())) {
+            if (Filters.FILE_NAME_FILTER.accept(f2) ||
+                (recursiveCheckBox.isSelected() && f2.isDirectory())) {
+              files.add(f2);
+              total++;
+            }
+          }
+          files.remove(i);
+          i--;
+        } else if (!Filters.FILE_NAME_FILTER.accept(file) || menagerie.isFilePresent(file)) {
+          files.remove(i);
+          i--;
+        }
+      }
+    }
+  }
 }

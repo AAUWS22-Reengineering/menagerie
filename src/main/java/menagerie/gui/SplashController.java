@@ -63,11 +63,16 @@ public class SplashController {
   private static final String MSG_SEE_LOG = "See log for more details";
   private static final int PROGRESS_UPDATE_INTERVAL = 16;
 
-  public StackPane rootPane;
-  public ImageView backgroundImageView;
-  public Label titleLabel;
-  public Label statusLabel;
-  public ProgressBar progressBar;
+  @FXML
+  private StackPane rootPane;
+  @FXML
+  private ImageView backgroundImageView;
+  @FXML
+  private Label titleLabel;
+  @FXML
+  private Label statusLabel;
+  @FXML
+  private ProgressBar progressBar;
 
   private final List<Image> icons;
   private final Image splashBackground;
