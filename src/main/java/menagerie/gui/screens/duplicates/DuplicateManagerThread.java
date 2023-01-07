@@ -105,7 +105,7 @@ public class DuplicateManagerThread extends CancellableThread {
           break;
         }
       } catch (InterruptedException e) {
-        // Do nothing
+        Thread.currentThread().interrupt();
       }
     }
 

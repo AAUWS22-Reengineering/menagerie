@@ -342,6 +342,7 @@ public class FindOnlineScreen extends Screen {
     try {
       cdl.await();
     } catch (InterruptedException ignore) {
+      Thread.currentThread().interrupt();
     }
     synchronized (currentMatch) {
       currentMatch.removeListener(changeListener);

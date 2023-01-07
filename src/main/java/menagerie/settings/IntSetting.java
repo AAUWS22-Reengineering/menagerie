@@ -34,6 +34,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class IntSetting extends Setting {
 
   private static final String VALUE_KEY = "value";
@@ -192,6 +194,9 @@ public class IntSetting extends Setting {
     return super.equals(obj) && obj instanceof IntSetting &&
            ((IntSetting) obj).getValue() == getValue();
   }
-  // TODO. override hashCode as well
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(value);
+  }
 }

@@ -26,6 +26,7 @@ package menagerie.settings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -245,6 +246,9 @@ public class GroupSetting extends Setting {
 
     return false;
   }
-  // TODO. override hashCode as well
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(children, enabled, toggleable);
+  }
 }

@@ -27,6 +27,8 @@ package menagerie.settings;
 import menagerie.util.Util;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 // REENG: extract serializer via interface
 public abstract class Setting {
 
@@ -89,12 +91,16 @@ public abstract class Setting {
       String tip1 = getTip(), tip2 = s.getTip();
       boolean h1 = isHidden(), h2 = s.isHidden();
       return Util.equalsNullable(id1, id2) && Util.equalsNullable(l1, l2) &&
-             Util.equalsNullable(tip1, tip2) && h1 == h2;
+          Util.equalsNullable(tip1, tip2) && h1 == h2;
     }
 
     return false;
   }
-  // TODO. override hashCode as well
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, label, tip, hidden);
+  }
 
   JSONObject toJSON() {
     return new JSONObject().put(ID_KEY, getID());

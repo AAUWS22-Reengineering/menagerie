@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -120,7 +121,11 @@ public class Settings {
 
     return false;
   }
-  // TODO. override hashCode as well
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(settings, version);
+  }
 
   public void save(File file) throws IOException {
     JSONObject json = new JSONObject();

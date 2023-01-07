@@ -200,7 +200,7 @@ public class GroupItem extends Item {
    *
    * @param str New title.
    */
-  public void setTitle(String str) {
+  public synchronized void setTitle(String str) {
     title.set(str);
 
     if (!isInvalidated()) {

@@ -27,6 +27,19 @@ package menagerie.gui;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import menagerie.model.menagerie.Item;
+import menagerie.util.Filters;
+import menagerie.util.listeners.ObjectListener;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.player.base.MediaPlayer;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,18 +56,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipFile;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
-import menagerie.model.menagerie.Item;
-import menagerie.util.Filters;
-import menagerie.util.listeners.ObjectListener;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
-import uk.co.caprica.vlcj.player.base.MediaPlayer;
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventListener;
 
 /**
  * JavaFX Image wrapper specifically for loading thumbnails of various types.
@@ -153,9 +154,9 @@ public class Thumbnail {
       try (PDDocument doc = PDDocument.load(file)) {
         PDRectangle mb = doc.getPage(0).getMediaBox();
         float scale = THUMBNAIL_SIZE / mb.getWidth();
-          if (THUMBNAIL_SIZE / mb.getHeight() < scale) {
-              scale = THUMBNAIL_SIZE / mb.getHeight();
-          }
+        if (THUMBNAIL_SIZE / mb.getHeight() < scale) {
+          scale = THUMBNAIL_SIZE / mb.getHeight();
+        }
         BufferedImage img = new PDFRenderer(doc).renderImage(0, scale);
         image = SwingFXUtils.toFXImage(img, null);
       } catch (IOException e) {
@@ -204,33 +205,32 @@ public class Thumbnail {
 
     try {
       if (mediaPlayer.media().start(file.getAbsolutePath())) {
-        inPositionLatch.await(2, TimeUnit.SECONDS);
-          if (inPositionLatch.getCount() > 0) {
-              return;
-          }
+        if (!inPositionLatch.await(2, TimeUnit.SECONDS)) {
+          return;
+        }
 
         if (mediaPlayer.video().videoDimension() != null) {
           float vidWidth = (float) mediaPlayer.video().videoDimension().getWidth();
           float vidHeight = (float) mediaPlayer.video().videoDimension().getHeight();
           float scale = Thumbnail.THUMBNAIL_SIZE / vidWidth;
-            if (scale * vidHeight > Thumbnail.THUMBNAIL_SIZE) {
-                scale = Thumbnail.THUMBNAIL_SIZE / vidHeight;
-            }
+          if (scale * vidHeight > Thumbnail.THUMBNAIL_SIZE) {
+            scale = Thumbnail.THUMBNAIL_SIZE / vidHeight;
+          }
           int width = (int) (scale * vidWidth);
           int height = (int) (scale * vidHeight);
 
           try {
             File tempFile = File.createTempFile("menagerie-video-thumb", ".jpg");
             mediaPlayer.snapshots().save(tempFile, width, height);
-            snapshotLatch.await(2, TimeUnit.SECONDS);
+            boolean snapshotWaitSuccessful = snapshotLatch.await(2, TimeUnit.SECONDS);
             mediaPlayer.events().removeMediaPlayerEventListener(eventListener);
-              if (snapshotLatch.getCount() > 0) {
-                  return;
-              }
+            if (!snapshotWaitSuccessful) {
+              return;
+            }
             image = new Image(tempFile.toURI().toString());
-              if (!tempFile.delete()) {
-                  LOGGER.warning("Failed to delete tempfile: " + tempFile);
-              }
+            if (!tempFile.delete()) {
+              LOGGER.warning("Failed to delete tempfile: " + tempFile);
+            }
 
             synchronized (imageReadyListeners) {
               imageReadyListeners.forEach(listener -> listener.pass(image));
@@ -244,6 +244,7 @@ public class Thumbnail {
       }
     } catch (Throwable t) {
       LOGGER.log(Level.WARNING, "Error while trying to create video thumbnail: " + file, t);
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -261,6 +262,7 @@ public class Thumbnail {
 
           thumb.loadItemImage();
         } catch (InterruptedException ignore) {
+          Thread.currentThread().interrupt();
         }
       }
     }, "General Thumbnailer Thread");
@@ -272,9 +274,9 @@ public class Thumbnail {
     videoThreadRunning = true;
 
     Thread t = new Thread(() -> {
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-        }
+      if (mediaPlayer != null) {
+        mediaPlayer.release();
+      }
       mediaPlayerFactory = new MediaPlayerFactory(VLC_THUMBNAILER_ARGS);
       mediaPlayer = mediaPlayerFactory.mediaPlayers().newEmbeddedMediaPlayer();
 
@@ -291,6 +293,7 @@ public class Thumbnail {
             thumb.owner.purgeThumbnail();
           }
         } catch (InterruptedException ignore) {
+          Thread.currentThread().interrupt();
         }
       }
     }, "Video Thumbnailer Thread");

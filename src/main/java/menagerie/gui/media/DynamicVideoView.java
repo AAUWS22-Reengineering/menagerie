@@ -333,8 +333,9 @@ public class DynamicVideoView extends StackPane {
    * @param b Repeat
    */
   public void setRepeat(boolean b) {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().setRepeat(b);
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
+      mediaPlayer.controls().setRepeat(b);
     }
   }
 
@@ -342,14 +343,16 @@ public class DynamicVideoView extends StackPane {
    * @return True if the video is currently playing
    */
   public boolean isPlaying() {
-    return !released && getMediaPlayer() != null && getMediaPlayer().status().isPlaying();
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    return !released && mediaPlayer != null && mediaPlayer.status().isPlaying();
   }
 
   /**
    * @return True if the video will repeat on completion
    */
   public boolean isRepeating() {
-    return !released && getMediaPlayer() != null && getMediaPlayer().controls().getRepeat();
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    return !released && mediaPlayer != null && mediaPlayer.controls().getRepeat();
   }
 
   /**
@@ -363,8 +366,9 @@ public class DynamicVideoView extends StackPane {
    * Pauses the video without resetting it
    */
   public void pause() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().pause();
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
+      mediaPlayer.controls().pause();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -376,8 +380,9 @@ public class DynamicVideoView extends StackPane {
    * Plays the video from the current position
    */
   public void play() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().play();
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
+      mediaPlayer.controls().play();
       if (!timer.getState().equals(Worker.State.READY)) {
         timer = new NanoTimer(TIMER_PERIOD) {
           @Override
@@ -395,8 +400,9 @@ public class DynamicVideoView extends StackPane {
    * Stops the video and resets it to the start of the video
    */
   public void stop() {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().controls().stop();
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
+      mediaPlayer.controls().stop();
       timer.cancel();
       if (!getChildren().contains(pauseImageView)) {
         getChildren().add(pauseImageView);
@@ -410,8 +416,9 @@ public class DynamicVideoView extends StackPane {
    * @param path Path to video file
    */
   public void startMedia(String path) {
-    if (!released && getMediaPlayer() != null) {
-      getMediaPlayer().media().start(path);
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
+      mediaPlayer.media().start(path);
       play();
     }
   }
@@ -420,12 +427,13 @@ public class DynamicVideoView extends StackPane {
    * Releases all VLCJ components and renders this object invalid
    */
   public void releaseVLCJ() {
-    if (!released && getMediaPlayer() != null) {
+    MediaPlayer mediaPlayer = getMediaPlayer();
+    if (!released && mediaPlayer != null) {
       if (mediaPlayerComponent != null) {
         mediaPlayerComponent.mediaPlayerFactory().release();
       }
-      getMediaPlayer().controls().stop();
-      getMediaPlayer().release();
+      mediaPlayer.controls().stop();
+      mediaPlayer.release();
       released = true;
     }
   }
@@ -463,6 +471,7 @@ public class DynamicVideoView extends StackPane {
             nativeBuffers[0], bufferFormat.getPitches()[0]);
         semaphore.release();
       } catch (InterruptedException ignore) {
+        Thread.currentThread().interrupt();
       }
     }
   }
@@ -504,6 +513,7 @@ public class DynamicVideoView extends StackPane {
         g.drawImage(img, 0, 0);
         semaphore.release();
       } catch (InterruptedException ignore) {
+        Thread.currentThread().interrupt();
       }
 
       g.setTransform(ax);

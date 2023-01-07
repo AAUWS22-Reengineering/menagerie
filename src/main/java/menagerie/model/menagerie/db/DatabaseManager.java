@@ -199,6 +199,7 @@ public class DatabaseManager extends Thread {
         }
       } catch (InterruptedException e) {
         LOGGER.log(Level.WARNING, "Database updater interrupted while waiting for queue", e);
+        Thread.currentThread().interrupt();
       }
     }
   }

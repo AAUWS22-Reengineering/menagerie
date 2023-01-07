@@ -68,8 +68,8 @@ public class ItemGridView extends GridView<Item> {
    * Constructs an item grid that can display Menagerie items.
    */
   public ItemGridView() {
-    setCellWidth(Thumbnail.THUMBNAIL_SIZE + CELL_BORDER * 2);
-    setCellHeight(Thumbnail.THUMBNAIL_SIZE + CELL_BORDER * 2);
+    setCellWidth(Thumbnail.THUMBNAIL_SIZE + (double) CELL_BORDER * 2);
+    setCellHeight(Thumbnail.THUMBNAIL_SIZE + (double) CELL_BORDER * 2);
 
     getItems().addListener((ListChangeListener<? super Item>) c -> {
       while (c.next()) {

@@ -70,6 +70,7 @@ public class ImporterThread implements Runnable {
       try {
         wait();
       } catch (InterruptedException ignore) {
+        // ignore since this is used in an endless loop
       }
     }
   }
@@ -82,7 +83,7 @@ public class ImporterThread implements Runnable {
   public synchronized void addJob(ImportJob job) {
     job.setImporter(this);
     queue.add(job);
-    notify();
+    notifyAll();
     importerListeners.forEach(listener -> listener.pass(job));
   }
 
@@ -93,7 +94,7 @@ public class ImporterThread implements Runnable {
    */
   public synchronized void setPaused(boolean paused) {
     this.paused = paused;
-    notify();
+    notifyAll();
   }
 
   /**

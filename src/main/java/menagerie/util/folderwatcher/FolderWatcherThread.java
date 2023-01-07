@@ -58,9 +58,9 @@ public class FolderWatcherThread extends Thread {
   /**
    * Tell thread to stop watching for files. Does not forcibly stop the thread.
    */
-  public void stopWatching() {
+  public synchronized void stopWatching() {
     running = false;
-    notify();
+    notifyAll();
   }
 
   @Override
@@ -85,6 +85,7 @@ public class FolderWatcherThread extends Thread {
           wait(timeout);
         }
       } catch (InterruptedException ignored) {
+        Thread.currentThread().interrupt();
       }
     }
   }
