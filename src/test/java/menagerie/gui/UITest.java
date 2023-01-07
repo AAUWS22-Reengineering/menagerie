@@ -7,7 +7,7 @@ import org.testfx.framework.junit5.ApplicationExtension;
 @ExtendWith(ApplicationExtension.class)
 public abstract class UITest {
 
-  public static final int SLEEP_TIME = 250;
+  public static final int SLEEP_TIME = 350;
 
   @BeforeAll
   static void setupHeadless() {
