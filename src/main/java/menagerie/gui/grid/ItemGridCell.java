@@ -51,6 +51,7 @@ public class ItemGridCell extends GridCell<Item> {
   private static final Font SMALL_FONT =
       Font.font(Font.getDefault().getName(), FontWeight.BOLD, 12);
   public static final String DEFAULT_STYLE_CLASS = "item-grid-cell";
+  public static final String SELECTED = "selected";
 
   /**
    * Shared group tag image.
@@ -91,7 +92,7 @@ public class ItemGridCell extends GridCell<Item> {
    * Listens for changes to the current item's selected state
    */
   private final InvalidationListener selectedListener = observable -> updateSelected(
-      ((BooleanProperty) getItem().getMetadata().get("selected")).get());
+      ((BooleanProperty) getItem().getMetadata().get(SELECTED)).get());
 
 
   public ItemGridCell() {
@@ -156,7 +157,7 @@ public class ItemGridCell extends GridCell<Item> {
         }
         getItem().getThumbnail().removeImageReadyListener(imageReadyListener);
       }
-      Object obj = getItem().getMetadata().get("selected");
+      Object obj = getItem().getMetadata().get(SELECTED);
       if (obj instanceof BooleanProperty) {
         ((BooleanProperty) obj).removeListener(selectedListener);
       }
@@ -200,7 +201,7 @@ public class ItemGridCell extends GridCell<Item> {
    * @param item Item to initialize and listen to selected state of
    */
   private void initSelected(Item item) {
-    Object obj = item.getMetadata().get("selected");
+    Object obj = item.getMetadata().get(SELECTED);
     if (obj instanceof BooleanProperty) {
       updateSelected(((BooleanProperty) obj).get());
       ((BooleanProperty) obj).addListener(selectedListener);
@@ -209,7 +210,7 @@ public class ItemGridCell extends GridCell<Item> {
           ((ItemGridView) getGridView()).isSelected(item);
       BooleanProperty prop = new SimpleBooleanProperty(sel);
       prop.addListener(selectedListener);
-      item.getMetadata().put("selected", prop);
+      item.getMetadata().put(SELECTED, prop);
       updateSelected(sel);
     }
   }

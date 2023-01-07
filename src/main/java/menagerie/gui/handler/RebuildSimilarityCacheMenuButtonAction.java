@@ -38,26 +38,7 @@ public class RebuildSimilarityCacheMenuButtonAction extends CancellableThread {
         continue;
       }
 
-      boolean hasSimilar = false;
-      for (int j = 0; j < menagerie.getItems().size(); j++) {
-        if (i == j) {
-          continue;
-        }
-        Item i2 = menagerie.getItems().get(j);
-
-        Optional<ItemSimilarity> itemSim2 = Items.get(ItemSimilarity.class, i2);
-        // skip item if it does not support sim calc or already has noSim flag set
-        // REENG: The condition itemSim2.get().hasNoSimilarity(i2) was present in the original code, but does seem like a bug.
-        //  With it the rebuilding does not do anything...
-        if (itemSim2.isEmpty() || !itemSim2.get().isEligibleForSimCalc(i2) /*|| itemSim2.get().hasNoSimilarity(i2)*/) {
-          continue;
-        }
-
-        if (itemSim1.get().isSimilarTo(i1, i2, confidenceSquare, MediaItem.MIN_CONFIDENCE)) {
-          hasSimilar = true;
-          break;
-        }
-      }
+      boolean hasSimilar = findHasSimilar(i1, itemSim1, i, confidenceSquare);
 
       itemSim1.get().setNoSimilarity(i1, !hasSimilar);
 
@@ -66,6 +47,30 @@ public class RebuildSimilarityCacheMenuButtonAction extends CancellableThread {
     }
 
     Platform.runLater(ps::close);
+  }
+
+  private boolean findHasSimilar(Item item, Optional<ItemSimilarity> itemSim, int itemIndex, double confidenceSquare) {
+    boolean hasSimilar = false;
+    for (int j = 0; j < menagerie.getItems().size(); j++) {
+      if (itemIndex == j) {
+        continue;
+      }
+      Item i2 = menagerie.getItems().get(j);
+
+      Optional<ItemSimilarity> itemSim2 = Items.get(ItemSimilarity.class, i2);
+      // skip item if it does not support sim calc or already has noSim flag set
+      // REENG: The condition itemSim2.get().hasNoSimilarity(i2) was present in the original code, but does seem like a bug.
+      //  With it the rebuilding does not do anything...
+      if (itemSim2.isEmpty() || !itemSim2.get().isEligibleForSimCalc(i2) /*|| itemSim2.get().hasNoSimilarity(i2)*/) {
+        continue;
+      }
+
+      if (itemSim.get().isSimilarTo(item, i2, confidenceSquare, MediaItem.MIN_CONFIDENCE)) {
+        hasSimilar = true;
+        break;
+      }
+    }
+    return hasSimilar;
   }
 
 }
