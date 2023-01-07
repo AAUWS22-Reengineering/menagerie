@@ -1,9 +1,10 @@
 package menagerie.gui.taglist;
 
-import java.util.Arrays;
 import menagerie.gui.predictive.PredictiveTextField;
 import menagerie.model.menagerie.Tag;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.Arrays;
 
 public class TagListCellRemoveListener implements ObjectListener<Tag> {
 

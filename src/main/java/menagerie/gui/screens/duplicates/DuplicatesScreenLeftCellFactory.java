@@ -1,17 +1,14 @@
 package menagerie.gui.screens.duplicates;
 
-import java.util.function.Supplier;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
 import javafx.util.Callback;
 import menagerie.gui.taglist.OtherMissingTagListCell;
 import menagerie.gui.taglist.TagListCell;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Tag;
+
+import java.util.function.Supplier;
 
 public class DuplicatesScreenLeftCellFactory<T> implements Callback<ListView<T>, ListCell<Tag>> {
 

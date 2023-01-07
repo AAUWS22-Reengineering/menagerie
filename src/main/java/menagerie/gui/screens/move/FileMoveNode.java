@@ -24,13 +24,13 @@
 
 package menagerie.gui.screens.move;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileMoveNode {
 

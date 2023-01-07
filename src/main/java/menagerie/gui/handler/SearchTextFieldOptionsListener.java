@@ -1,11 +1,12 @@
 package menagerie.gui.handler;
 
-import java.util.ArrayList;
-import java.util.List;
 import menagerie.gui.predictive.PredictiveTextFieldOptionsListener;
 import menagerie.gui.util.TagUtil;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.model.menagerie.Tag;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchTextFieldOptionsListener implements PredictiveTextFieldOptionsListener {
 

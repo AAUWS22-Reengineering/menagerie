@@ -1,11 +1,12 @@
 package menagerie.model.menagerie.importer;
 
-import java.io.File;
-import java.net.URL;
 import javafx.beans.value.ChangeListener;
 import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.settings.MenagerieSettings;
+
+import java.io.File;
+import java.net.URL;
 
 public class WebImportJob extends ImportJob {
 

@@ -24,7 +24,6 @@
 
 package menagerie.gui.screens.dialogs;
 
-import java.text.DecimalFormat;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -37,6 +36,8 @@ import javafx.scene.layout.VBox;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.util.listeners.PokeListener;
+
+import java.text.DecimalFormat;
 
 public class ProgressScreen extends Screen {
 

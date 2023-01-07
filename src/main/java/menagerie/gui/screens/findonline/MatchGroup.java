@@ -24,14 +24,15 @@
 
 package menagerie.gui.screens.findonline;
 
+import menagerie.duplicates.DuplicateFinder;
+import menagerie.duplicates.Match;
+import menagerie.model.menagerie.MediaItem;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import menagerie.duplicates.DuplicateFinder;
-import menagerie.duplicates.Match;
-import menagerie.model.menagerie.MediaItem;
 
 public class MatchGroup {
 

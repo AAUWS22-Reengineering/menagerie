@@ -24,9 +24,6 @@
 
 package menagerie.gui.screens.findonline;
 
-import java.lang.ref.SoftReference;
-import java.util.HashMap;
-import java.util.Map;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -37,6 +34,10 @@ import menagerie.duplicates.Match;
 import menagerie.gui.grid.ItemGridCell;
 import menagerie.gui.media.DynamicImageView;
 import org.controlsfx.control.GridCell;
+
+import java.lang.ref.SoftReference;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MatchGridCell extends GridCell<Match> {
 

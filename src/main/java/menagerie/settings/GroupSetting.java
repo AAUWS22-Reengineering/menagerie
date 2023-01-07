@@ -24,10 +24,6 @@
 
 package menagerie.settings;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
@@ -38,6 +34,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 public class GroupSetting extends Setting {
 

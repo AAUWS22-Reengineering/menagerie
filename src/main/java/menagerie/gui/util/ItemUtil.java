@@ -1,20 +1,16 @@
 package menagerie.gui.util;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import menagerie.gui.itemhandler.Items;
+import menagerie.model.menagerie.*;
+import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import menagerie.gui.itemhandler.Items;
-import menagerie.model.menagerie.GroupItem;
-import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.model.menagerie.Menagerie;
-import menagerie.model.menagerie.Tag;
-import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
-import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 public class ItemUtil {
 

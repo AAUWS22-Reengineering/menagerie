@@ -1,5 +1,7 @@
 package menagerie.model.menagerie.db;
 
+import menagerie.model.menagerie.Menagerie;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,7 +9,6 @@ import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import menagerie.model.menagerie.Menagerie;
 
 public class DatabaseUtil {
 

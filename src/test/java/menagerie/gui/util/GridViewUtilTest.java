@@ -15,7 +15,6 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
 public class GridViewUtilTest extends UITest {
 

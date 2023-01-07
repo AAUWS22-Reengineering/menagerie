@@ -24,16 +24,15 @@
 
 package menagerie.gui.screens.move;
 
+import menagerie.gui.itemhandler.Items;
+import menagerie.model.menagerie.Item;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import menagerie.gui.itemhandler.Items;
-import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 
 public class FileMoveTree {
 

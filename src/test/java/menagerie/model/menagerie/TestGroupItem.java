@@ -1,7 +1,6 @@
 package menagerie.model.menagerie;
 
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
 
 public class TestGroupItem extends GroupItem {
   /**

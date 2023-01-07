@@ -1,9 +1,5 @@
 package menagerie.gui.taglist;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -13,6 +9,11 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.ContextMenuEvent;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.gui.screens.dialogs.TextDialogScreen;
+
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class TagListCellContextMenuListener implements EventHandler<ContextMenuEvent> {
 

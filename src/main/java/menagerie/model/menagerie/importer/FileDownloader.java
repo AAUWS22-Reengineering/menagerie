@@ -1,5 +1,11 @@
 package menagerie.model.menagerie.importer;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import menagerie.settings.MenagerieSettings;
+import menagerie.util.FileUtil;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,11 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import menagerie.settings.MenagerieSettings;
-import menagerie.util.FileUtil;
 
 public class FileDownloader {
 

@@ -25,6 +25,15 @@
 package menagerie.model.menagerie;
 
 import com.sun.jna.platform.FileUtils;
+import javafx.beans.property.*;
+import javafx.scene.image.Image;
+import menagerie.gui.Thumbnail;
+import menagerie.model.menagerie.histogram.HistogramReadException;
+import menagerie.model.menagerie.histogram.ImageHistogram;
+import menagerie.util.Filters;
+import menagerie.util.MD5Hasher;
+import org.apache.commons.codec.binary.Hex;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -33,21 +42,6 @@ import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.scene.image.Image;
-import menagerie.gui.Thumbnail;
-import menagerie.model.menagerie.histogram.HistogramReadException;
-import menagerie.model.menagerie.histogram.ImageHistogram;
-import menagerie.util.Filters;
-import menagerie.util.MD5Hasher;
-import org.apache.commons.codec.binary.Hex;
 
 /**
  * A Menagerie item representing a media file of some form. Image and video.

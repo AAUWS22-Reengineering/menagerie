@@ -24,11 +24,6 @@
 
 package menagerie.gui.screens;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -50,10 +45,11 @@ import menagerie.gui.itemhandler.preview.ItemPreview;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.gui.screens.dialogs.ConfirmationScreen;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.util.listeners.ObjectListener;
 import menagerie.util.listeners.PokeListener;
+
+import java.util.*;
 
 public class SlideshowScreen extends Screen {
 

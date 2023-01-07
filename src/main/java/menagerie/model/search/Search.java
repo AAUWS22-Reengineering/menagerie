@@ -28,7 +28,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.search.rules.SearchRule;
 

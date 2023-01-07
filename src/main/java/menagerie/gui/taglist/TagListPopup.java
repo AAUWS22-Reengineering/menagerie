@@ -24,22 +24,21 @@
 
 package menagerie.gui.taglist;
 
-import java.awt.Desktop;
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
+import menagerie.model.menagerie.Tag;
+
+import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.geometry.Insets;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Separator;
-import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
-import javafx.stage.Popup;
-import menagerie.model.menagerie.Tag;
 
 public class TagListPopup extends Popup {
 

@@ -1,13 +1,14 @@
 package menagerie.gui.handler;
 
-import java.util.Date;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import menagerie.gui.screens.log.LogItem;
 import menagerie.gui.screens.log.LogScreen;
+
+import java.util.Date;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 public class LoggerHandler extends Handler {
 

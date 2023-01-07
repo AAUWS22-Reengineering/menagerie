@@ -24,12 +24,13 @@
 
 package menagerie.model.menagerie.importer;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.settings.MenagerieSettings;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A thread that cleanly serializes Menagerie imports as jobs with additional features.

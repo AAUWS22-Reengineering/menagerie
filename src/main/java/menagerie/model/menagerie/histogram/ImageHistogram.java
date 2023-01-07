@@ -25,12 +25,13 @@
 package menagerie.model.menagerie.histogram;
 
 
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import javafx.scene.image.Image;
-import javafx.scene.image.PixelReader;
 
 /**
  * A 4 channel histogram of an image that can be used to find similarity between two images.

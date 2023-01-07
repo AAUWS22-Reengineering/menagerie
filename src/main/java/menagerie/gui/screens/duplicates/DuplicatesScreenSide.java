@@ -1,8 +1,5 @@
 package menagerie.gui.screens.duplicates;
 
-import static javafx.scene.layout.Region.USE_PREF_SIZE;
-
-import java.util.Comparator;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
@@ -12,6 +9,10 @@ import menagerie.gui.ItemInfoBox;
 import menagerie.gui.media.DynamicMediaView;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Tag;
+
+import java.util.Comparator;
+
+import static javafx.scene.layout.Region.USE_PREF_SIZE;
 
 public class DuplicatesScreenSide {
 

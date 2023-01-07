@@ -24,7 +24,6 @@
 
 package menagerie.settings;
 
-import java.io.File;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -34,6 +33,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.DirectoryChooser;
+
+import java.io.File;
 
 public class FolderSetting extends StringSetting {
 

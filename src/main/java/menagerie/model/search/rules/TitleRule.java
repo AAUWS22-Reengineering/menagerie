@@ -25,7 +25,6 @@
 package menagerie.model.search.rules;
 
 import menagerie.gui.itemhandler.Items;
-import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.itemhandler.search.ItemSearch;
 

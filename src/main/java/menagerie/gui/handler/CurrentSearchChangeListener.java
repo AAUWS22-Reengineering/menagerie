@@ -1,11 +1,12 @@
 package menagerie.gui.handler;
 
-import java.util.List;
-import java.util.function.Supplier;
 import javafx.collections.ListChangeListener;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.model.menagerie.Item;
 import menagerie.util.Action;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 public class CurrentSearchChangeListener implements ListChangeListener<Item> {
 

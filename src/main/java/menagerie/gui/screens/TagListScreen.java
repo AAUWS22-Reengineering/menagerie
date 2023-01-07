@@ -24,24 +24,12 @@
 
 package menagerie.gui.screens;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.regex.PatternSyntaxException;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -54,6 +42,10 @@ import javafx.util.Callback;
 import menagerie.gui.taglist.TagListCell;
 import menagerie.gui.util.TagUtil;
 import menagerie.model.menagerie.Tag;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 public class TagListScreen extends Screen {
 

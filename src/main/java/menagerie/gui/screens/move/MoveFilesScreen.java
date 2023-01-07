@@ -24,19 +24,9 @@
 
 package menagerie.gui.screens.move;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -47,11 +37,16 @@ import javafx.stage.DirectoryChooser;
 import menagerie.gui.itemhandler.Items;
 import menagerie.gui.screens.Screen;
 import menagerie.gui.screens.ScreenPane;
-import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.itemhandler.file.ItemFileHandler;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MoveFilesScreen extends Screen {
 
