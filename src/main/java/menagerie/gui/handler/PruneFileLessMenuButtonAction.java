@@ -1,18 +1,18 @@
 package menagerie.gui.handler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import javafx.application.Platform;
 import menagerie.gui.itemhandler.Items;
-import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.gui.screens.ScreenPane;
 import menagerie.gui.screens.dialogs.AlertDialogScreen;
 import menagerie.gui.screens.dialogs.ProgressScreen;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.Menagerie;
+import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.util.CancellableThread;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class PruneFileLessMenuButtonAction extends CancellableThread {
 

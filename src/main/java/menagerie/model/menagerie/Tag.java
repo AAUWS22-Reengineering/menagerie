@@ -24,13 +24,14 @@
 
 package menagerie.model.menagerie;
 
-import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.paint.Paint;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple Tag class.

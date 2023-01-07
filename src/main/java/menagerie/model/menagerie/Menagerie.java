@@ -24,15 +24,6 @@
 
 package menagerie.model.menagerie;
 
-import java.io.File;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
@@ -40,6 +31,12 @@ import menagerie.model.menagerie.db.DatabaseManager;
 import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
 import menagerie.model.search.Search;
+
+import java.io.File;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Menagerie system. Contains items, manages database.

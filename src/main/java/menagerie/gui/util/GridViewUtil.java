@@ -1,18 +1,16 @@
 package menagerie.gui.util;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import javafx.scene.input.Dragboard;
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.itemhandler.Items;
 import menagerie.gui.itemhandler.gridviewselector.ItemGridViewSelector;
-import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.itemhandler.properties.ItemProperties;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class GridViewUtil {
 

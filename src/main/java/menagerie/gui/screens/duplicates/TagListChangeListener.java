@@ -1,12 +1,13 @@
 package menagerie.gui.screens.duplicates;
 
-import java.util.Comparator;
-import java.util.function.Supplier;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.ListView;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Tag;
+
+import java.util.Comparator;
+import java.util.function.Supplier;
 
 public class TagListChangeListener implements ListChangeListener<Tag> {
 

@@ -24,14 +24,17 @@
 
 package menagerie.model.menagerie.db;
 
+import menagerie.gui.itemhandler.Items;
+import menagerie.model.SimilarPair;
+import menagerie.model.menagerie.*;
+import menagerie.model.menagerie.histogram.HistogramReadException;
+import menagerie.model.menagerie.histogram.ImageHistogram;
+import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
+import menagerie.util.listeners.ObjectListener;
+
 import java.io.File;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Comparator;
+import java.sql.*;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -41,18 +44,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import menagerie.gui.itemhandler.Items;
-import menagerie.model.SimilarPair;
-import menagerie.model.menagerie.GroupItem;
-import menagerie.model.menagerie.Item;
-import menagerie.model.menagerie.MediaItem;
-import menagerie.model.menagerie.Menagerie;
-import menagerie.model.menagerie.Tag;
-import menagerie.model.menagerie.histogram.HistogramReadException;
-import menagerie.model.menagerie.histogram.ImageHistogram;
-import menagerie.model.menagerie.itemhandler.group.ItemGroupHandler;
-import menagerie.util.listeners.ObjectListener;
 
 /**
  * Menagerie database updater thread. Provides methods for synchronous database updates as well as asynchronous updates.

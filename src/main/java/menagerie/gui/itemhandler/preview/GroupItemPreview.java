@@ -6,8 +6,6 @@ import menagerie.model.menagerie.GroupItem;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 
-import java.util.logging.Logger;
-
 public class GroupItemPreview implements ItemPreview {
 
   @Override

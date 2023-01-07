@@ -24,7 +24,6 @@
 
 package menagerie.gui.screens.log;
 
-import java.util.logging.Level;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.css.PseudoClass;
@@ -34,6 +33,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+
+import java.util.logging.Level;
 
 public class LogListCell extends ListCell<LogItem> {
 

@@ -24,8 +24,6 @@
 
 package menagerie.gui.taglist;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
@@ -40,6 +38,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import menagerie.model.menagerie.Tag;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TagListCell extends ListCell<Tag> {
 

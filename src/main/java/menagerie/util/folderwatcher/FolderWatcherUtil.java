@@ -1,10 +1,11 @@
 package menagerie.util.folderwatcher;
 
-import java.io.File;
-import java.util.logging.Logger;
 import menagerie.model.menagerie.importer.ImporterThread;
 import menagerie.model.menagerie.importer.LocalImportJob;
 import menagerie.util.FileUtil;
+
+import java.io.File;
+import java.util.logging.Logger;
 
 public class FolderWatcherUtil {
 

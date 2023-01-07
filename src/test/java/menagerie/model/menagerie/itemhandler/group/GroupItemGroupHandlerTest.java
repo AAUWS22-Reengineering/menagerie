@@ -1,10 +1,10 @@
 package menagerie.model.menagerie.itemhandler.group;
 
-import menagerie.model.menagerie.*;
+import menagerie.model.menagerie.GroupItem;
+import menagerie.model.menagerie.ItemTestUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 
 public class GroupItemGroupHandlerTest {
 

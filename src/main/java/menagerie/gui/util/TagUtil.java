@@ -1,11 +1,11 @@
 package menagerie.gui.util;
 
-import java.util.*;
-
 import menagerie.gui.grid.ItemGridView;
 import menagerie.gui.taglist.TagListCell;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.Tag;
+
+import java.util.*;
 
 public class TagUtil {
 

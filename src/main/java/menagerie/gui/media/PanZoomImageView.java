@@ -24,9 +24,6 @@
 
 package menagerie.gui.media;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -38,6 +35,10 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An ImageView that dynamically fits to the parent node and implements zooming and panning with the mouse.

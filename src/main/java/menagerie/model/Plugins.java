@@ -1,13 +1,14 @@
 package menagerie.model;
 
+import menagerie.ErrorListener;
+import menagerie.MenageriePlugin;
+import menagerie.duplicates.DuplicateFinder;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import menagerie.ErrorListener;
-import menagerie.MenageriePlugin;
-import menagerie.duplicates.DuplicateFinder;
 
 public class Plugins {
 

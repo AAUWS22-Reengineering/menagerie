@@ -1,8 +1,9 @@
 package menagerie.model.menagerie.importer;
 
+import menagerie.model.menagerie.MediaItem;
+
 import java.io.File;
 import java.util.logging.Logger;
-import menagerie.model.menagerie.MediaItem;
 
 public class ItemHasher {
 

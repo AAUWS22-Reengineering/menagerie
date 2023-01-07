@@ -1,6 +1,5 @@
 package menagerie.gui.screens.duplicates;
 
-import java.util.function.Supplier;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -11,6 +10,8 @@ import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.util.Action;
 import menagerie.util.listeners.ObjectListener;
+
+import java.util.function.Supplier;
 
 public class RightContextMenuListener implements EventHandler<ContextMenuEvent> {
 

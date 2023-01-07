@@ -24,12 +24,6 @@
 
 package menagerie.gui.screens.settings;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -47,6 +41,13 @@ import menagerie.gui.screens.ScreenPane;
 import menagerie.settings.Setting;
 import menagerie.settings.SettingNode;
 import menagerie.settings.Settings;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SettingsScreen extends Screen {
 

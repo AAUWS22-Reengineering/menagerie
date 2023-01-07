@@ -1,11 +1,12 @@
 package menagerie.gui.taglist;
 
-import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.css.PseudoClass;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Tag;
+
+import java.util.function.Supplier;
 
 public class OtherMissingTagListCell extends TagListCell {
 

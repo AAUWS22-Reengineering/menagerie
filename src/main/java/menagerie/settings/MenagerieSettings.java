@@ -24,12 +24,13 @@
 
 package menagerie.settings;
 
+import menagerie.gui.Main;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import menagerie.gui.Main;
 
 public class MenagerieSettings extends Settings {
 

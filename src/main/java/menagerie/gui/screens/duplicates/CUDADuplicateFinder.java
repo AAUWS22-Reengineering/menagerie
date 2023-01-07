@@ -24,22 +24,18 @@
 
 package menagerie.gui.screens.duplicates;
 
-import java.util.ArrayList;
-import java.util.List;
 import jcuda.Pointer;
 import jcuda.Sizeof;
-import jcuda.driver.CUcontext;
-import jcuda.driver.CUdevice;
-import jcuda.driver.CUdeviceptr;
-import jcuda.driver.CUfunction;
-import jcuda.driver.CUmodule;
-import jcuda.driver.JCudaDriver;
+import jcuda.driver.*;
 import menagerie.gui.itemhandler.Items;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.Item;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.histogram.ImageHistogram;
 import menagerie.model.menagerie.itemhandler.similarity.ItemSimilarity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class CUDADuplicateFinder {

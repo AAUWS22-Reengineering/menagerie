@@ -24,14 +24,8 @@
 
 package menagerie.gui.screens;
 
-import java.util.Map;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
@@ -40,6 +34,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import menagerie.model.menagerie.Tag;
 import menagerie.util.Filters;
+
+import java.util.Map;
 
 public class HelpScreen extends Screen {
 

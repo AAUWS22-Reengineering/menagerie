@@ -1,11 +1,12 @@
 package menagerie.model.menagerie.importer;
 
-import java.io.File;
-import java.util.logging.Logger;
 import menagerie.gui.util.ItemUtil;
 import menagerie.model.menagerie.MediaItem;
 import menagerie.model.menagerie.Menagerie;
 import menagerie.settings.MenagerieSettings;
+
+import java.io.File;
+import java.util.logging.Logger;
 
 public class FileImporter {
 

@@ -25,10 +25,11 @@
 package menagerie.util;
 
 
+import javafx.stage.FileChooser;
+
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.stage.FileChooser;
 
 /**
  * A utility class containing filters for the Menagerie environment.

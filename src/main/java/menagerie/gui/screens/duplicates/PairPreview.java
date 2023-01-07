@@ -1,9 +1,10 @@
 package menagerie.gui.screens.duplicates;
 
-import java.util.List;
-import java.util.function.Consumer;
 import menagerie.model.SimilarPair;
 import menagerie.model.menagerie.MediaItem;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 class PairPreview {
 

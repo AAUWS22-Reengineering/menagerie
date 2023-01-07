@@ -1,8 +1,8 @@
 package menagerie.gui.util;
 
-import static java.util.Objects.requireNonNull;
-
 import javafx.scene.image.Image;
+
+import static java.util.Objects.requireNonNull;
 
 public class Icons {
 
